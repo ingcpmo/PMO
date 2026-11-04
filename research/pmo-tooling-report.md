@@ -2,6 +2,7 @@
 
 **Fecha:** 4 de noviembre de 2026
 **Alcance:** fase de investigación y decisión de base. No incluye código del producto.
+**Actualización:** ver la investigación profunda [`pmo-deep-research-v2.md`](pmo-deep-research-v2.md), con el roadmap completo, ranking por estrellas, motores de asignación óptima, Hugging Face y la clasificación de cada link.
 **Fuentes:** búsqueda en GitHub (API de búsqueda, datos de estrellas y última actividad tomados el 2026-11-04), READMEs de los repositorios y búsqueda web general. Las fuentes web están al final.
 
 ---
