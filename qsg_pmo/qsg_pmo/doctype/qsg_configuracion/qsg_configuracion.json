@@ -8,6 +8,8 @@
   "default_customer",
   "central_warehouse",
   "sla_risk_minutes",
+  "warranty_days",
+  "geofence_meters",
   "sec_eng",
   "average_speed_kmh",
   "road_factor",
@@ -16,13 +18,16 @@
   "cb_eng",
   "vroom_url",
   "osrm_url",
+  "grade_a_bonus_minutes",
+  "grade_c_penalty_minutes",
   "sec_score",
   "w_window",
   "w_ftr",
   "w_sla",
   "cb_score",
   "w_evidence",
-  "w_rating"
+  "w_rating",
+  "w_rework"
  ],
  "fields": [
   {
@@ -92,13 +97,13 @@
    "label": "Pesos de evaluaci\u00f3n de contratistas (%)"
   },
   {
-   "default": "25",
+   "default": "20",
    "fieldname": "w_window",
    "fieldtype": "Percent",
    "label": "Cumplimiento de ventana"
   },
   {
-   "default": "25",
+   "default": "20",
    "fieldname": "w_ftr",
    "fieldtype": "Percent",
    "label": "Primera visita exitosa"
@@ -124,13 +129,43 @@
    "fieldname": "w_rating",
    "fieldtype": "Percent",
    "label": "Satisfacci\u00f3n del cliente"
+  },
+  {
+   "default": "30",
+   "fieldname": "warranty_days",
+   "fieldtype": "Int",
+   "label": "D\u00edas de garant\u00eda (retrabajo)"
+  },
+  {
+   "default": "300",
+   "fieldname": "geofence_meters",
+   "fieldtype": "Int",
+   "label": "Per\u00edmetro de llegada (m)"
+  },
+  {
+   "default": "10",
+   "fieldname": "grade_a_bonus_minutes",
+   "fieldtype": "Float",
+   "label": "Bonificaci\u00f3n contratista A (min)"
+  },
+  {
+   "default": "15",
+   "fieldname": "grade_c_penalty_minutes",
+   "fieldtype": "Float",
+   "label": "Penalizaci\u00f3n contratista C (min)"
+  },
+  {
+   "default": "10",
+   "fieldname": "w_rework",
+   "fieldtype": "Percent",
+   "label": "Sin retrabajo"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-05 04:57:10.698448",
+ "modified": "2026-11-05 05:08:42.717541",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Configuracion",

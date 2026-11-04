@@ -18,7 +18,8 @@
   "insurance_expiry",
   "sec_score",
   "current_score",
-  "current_grade"
+  "current_grade",
+  "active_crews"
  ],
  "fields": [
   {
@@ -95,12 +96,19 @@
    "label": "Categor\u00eda",
    "options": "\nA\nB\nC",
    "read_only": 1
+  },
+  {
+   "fieldname": "active_crews",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Cuadrillas activas",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-05 04:57:09.143113",
+ "modified": "2026-11-05 05:08:42.418881",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Contratista",

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from qsg_pmo.assignment.engine import (
 	REASON_NO_CAPACITY,
+	REASON_NO_CONTRACTOR_CREW,
 	REASON_NO_LOCATION,
 	REASON_NO_SKILL,
 	REASON_NO_WINDOW,
@@ -40,7 +41,7 @@ def job(order, loc, start=8, end=12, skills=("FTTH-RES",), priority="Normal", du
 	)
 
 
-def crew(name, loc, skills=("FTTH-RES",), max_orders=6, zone=None):
+def crew(name, loc, skills=("FTTH-RES",), max_orders=6, zone=None, contractor=None, bonus=0.0, preassigned=0):
 	return Crew(
 		crew=name,
 		latitude=loc[0],
@@ -50,6 +51,9 @@ def crew(name, loc, skills=("FTTH-RES",), max_orders=6, zone=None):
 		skills=set(skills),
 		max_orders=max_orders,
 		zone=zone,
+		contractor=contractor,
+		quality_bonus_minutes=bonus,
+		preassigned=preassigned,
 	)
 
 
@@ -108,6 +112,33 @@ class TestEngine(unittest.TestCase):
 		for a in assigned:
 			counts[a.crew] = counts.get(a.crew, 0) + 1
 		self.assertEqual(counts, {"A": 2, "B": 2})
+
+	def test_respects_contractor_already_assigned(self):
+		j = job("O1", CAGUAS)
+		j.contractor = "K2"
+		crews = [crew("NEAR", CAGUAS, contractor="K1"), crew("FAR", SAN_JUAN, contractor="K2")]
+		assigned, _ = plan([j], crews)
+		self.assertEqual(assigned[0].crew, "FAR")
+		self.assertEqual(assigned[0].contractor, "K2")
+
+	def test_contractor_without_crew(self):
+		j = job("O1", CAGUAS, skills=("HFC-RES",))
+		j.contractor = "K1"
+		crews = [crew("A", CAGUAS, contractor="K1"), crew("B", CAGUAS, skills=("HFC-RES",), contractor="K2")]
+		_, unassigned = plan([j], crews)
+		self.assertEqual(unassigned[0].reason, REASON_NO_CONTRACTOR_CREW)
+
+	def test_quality_bonus_breaks_ties(self):
+		crews = [crew("C-GRADE-C", SAN_JUAN, bonus=-15), crew("D-GRADE-A", SAN_JUAN, bonus=10)]
+		assigned, _ = plan([job("O1", SAN_JUAN)], crews)
+		self.assertEqual(assigned[0].crew, "D-GRADE-A")
+
+	def test_preassigned_orders_reduce_capacity(self):
+		jobs = [job("O1", CAGUAS, end=17), job("O2", CAGUAS, end=17)]
+		assigned, unassigned = plan(jobs, [crew("C1", CAGUAS, max_orders=2, preassigned=1)])
+		self.assertEqual(len(assigned), 1)
+		self.assertEqual(assigned[0].sequence, 2)
+		self.assertEqual(unassigned[0].reason, REASON_NO_CAPACITY)
 
 	def test_deterministic(self):
 		jobs = [job(f"O{i}", BAYAMON, end=17, duration=45) for i in range(5)]

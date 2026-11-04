@@ -93,18 +93,30 @@ class QSGEvaluacionContratista(Document):
 		# El campo Rating guarda una fracción 0-1 en Frappe; se lleva a escala 1-5
 		self.avg_rating = round(sum(ratings) / len(ratings) * 5, 2) if ratings else 0
 
+		# Retrabajo: órdenes nuevas en garantía atribuidas a este contratista en el período
+		completed = sum(1 for o in orders if o.status == "Completada")
+		self.rework_count = frappe.db.count(
+			"QSG Orden",
+			{
+				"rework_contractor": self.contractor,
+				"is_rework": 1,
+				"received_on": ("between", (self.period_start, add_days(self.period_end, 1))),
+			},
+		)
+		self.rework_rate = pct(self.rework_count, completed)
+
 		cfg = frappe.get_cached_doc("QSG Configuracion")
-		weights = {
-			"window_compliance": cfg.w_window or 25,
-			"first_time_right": cfg.w_ftr or 25,
-			"sla_compliance": cfg.w_sla or 20,
-			"evidence_compliance": cfg.w_evidence or 15,
+		parts = {
+			"window_compliance": (self.window_compliance, cfg.w_window or 20),
+			"first_time_right": (self.first_time_right, cfg.w_ftr or 20),
+			"sla_compliance": (self.sla_compliance, cfg.w_sla or 20),
+			"evidence_compliance": (self.evidence_compliance, cfg.w_evidence or 15),
+			"no_rework": (max(0.0, 100 - (self.rework_rate or 0)), cfg.w_rework or 10),
 		}
-		w_rating = cfg.w_rating or 15
-		total_w = sum(weights.values()) + (w_rating if ratings else 0)
-		score = sum((self.get(k) or 0) * w for k, w in weights.items())
 		if ratings:
-			score += (self.avg_rating / 5 * 100) * w_rating
+			parts["rating"] = (self.avg_rating / 5 * 100, cfg.w_rating or 15)
+		total_w = sum(w for _, w in parts.values())
+		score = sum(v * w for v, w in parts.values())
 		self.score = round(score / total_w, 2) if total and total_w else 0
 		self.grade = grade_for(self.score) if total else None
 

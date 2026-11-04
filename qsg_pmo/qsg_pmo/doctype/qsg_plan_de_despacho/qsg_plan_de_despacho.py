@@ -32,7 +32,9 @@ class QSGPlandeDespacho(Document):
 		self.set("assignments", [])
 		self.set("unassigned", [])
 		for a in assigned:
-			self.append("assignments", a.__dict__)
+			row = dict(a.__dict__)
+			row.pop("contractor", None)
+			self.append("assignments", row)
 		for u in unassigned:
 			self.append("unassigned", u.__dict__)
 		self.total_assigned = len(assigned)
@@ -47,18 +49,25 @@ class QSGPlandeDespacho(Document):
 			frappe.throw(_("Genere la propuesta antes de aprobar."))
 		for a in self.assignments:
 			order = frappe.get_doc("QSG Orden", a.order)
-			if order.status not in (*OPEN_FOR_PLANNING, "Asignada"):
+			if order.status not in OPEN_FOR_PLANNING:
 				continue
 			order.crew = a.crew
+			order.contractor = frappe.db.get_value("QSG Cuadrilla", a.crew, "contractor")
 			order.dispatch_plan = self.name
 			order.route_sequence = a.sequence
 			order.estimated_arrival = a.estimated_arrival
-			order.status = "Asignada"
+			order.estimated_finish = a.estimated_finish
+			order.status = "Programada"
 			order.save()
 		requests = create_material_requests(self)
+		for a in self.assignments:
+			if a.crew in requests:
+				frappe.db.set_value(
+					"QSG Orden", a.order, "material_request", requests[a.crew], update_modified=False
+				)
 		self.status = "Aprobado"
 		self.save()
-		return {"material_requests": requests}
+		return {"material_requests": list(requests.values())}
 
 
 def load_settings() -> Settings:
@@ -96,6 +105,7 @@ def load_jobs(plan_date, zone=None):
 			"priority",
 			"sla_due",
 			"zone",
+			"contractor",
 		],
 		order_by="name",
 	)
@@ -117,6 +127,7 @@ def load_jobs(plan_date, zone=None):
 				priority=r.priority or "Normal",
 				sla_due=get_datetime(r.sla_due) if r.sla_due else None,
 				zone=r.zone,
+				contractor=r.contractor,
 			)
 		)
 	return jobs
@@ -142,10 +153,22 @@ def load_crews(plan_date, zone=None):
 		order_by="name",
 	)
 	d = getdate(plan_date)
+	unavailable = crews_unavailable(d)
+	cfg = frappe.get_cached_doc("QSG Configuracion")
 	crews = []
 	for r in rows:
-		if frappe.get_cached_value("QSG Contratista", r.contractor, "status") != "Activo":
+		contractor = frappe.get_doc("QSG Contratista", r.contractor)
+		if contractor.status != "Activo":
 			continue
+		if contractor.insurance_expiry and getdate(contractor.insurance_expiry) < d:
+			continue
+		if r.name in unavailable:
+			continue
+		bonus = 0.0
+		if contractor.current_grade == "A":
+			bonus = cfg.grade_a_bonus_minutes or 0
+		elif contractor.current_grade == "C":
+			bonus = -(cfg.grade_c_penalty_minutes or 0)
 		crews.append(
 			Crew(
 				crew=r.name,
@@ -156,9 +179,31 @@ def load_crews(plan_date, zone=None):
 				skills=_skills("QSG Cuadrilla", r.name),
 				max_orders=r.max_orders_per_day or 6,
 				zone=r.base_zone,
+				contractor=r.contractor,
+				quality_bonus_minutes=bonus,
+				preassigned=already_scheduled(r.name, d),
 			)
 		)
 	return crews
+
+
+def crews_unavailable(day):
+	"""Cuadrillas con una ausencia registrada que cubre el día."""
+	return set(
+		frappe.get_all(
+			"QSG Disponibilidad",
+			filters={"from_date": ("<=", day), "to_date": (">=", day)},
+			pluck="crew",
+		)
+	)
+
+
+def already_scheduled(crew, day):
+	"""Órdenes ya programadas para la cuadrilla ese día (de planes anteriores o asignación manual)."""
+	return frappe.db.count(
+		"QSG Orden",
+		{"crew": crew, "appointment_date": day, "status": ("in", ("Programada", "En ruta", "En sitio"))},
+	)
 
 
 def create_material_requests(plan_doc):
@@ -166,7 +211,7 @@ def create_material_requests(plan_doc):
 	hacia el almacén de la cuadrilla, sumando los kits de los tipos de trabajo asignados."""
 	central = frappe.db.get_single_value("QSG Configuracion", "central_warehouse")
 	if not central:
-		return []
+		return {}
 	needs = defaultdict(lambda: defaultdict(float))
 	for a in plan_doc.assignments:
 		work_type = frappe.db.get_value("QSG Orden", a.order, "work_type")
@@ -176,7 +221,7 @@ def create_material_requests(plan_doc):
 			fields=["item", "qty"],
 		):
 			needs[a.crew][k.item] += k.qty
-	created = []
+	created = {}
 	company = frappe.db.get_value("Warehouse", central, "company")
 	for crew, items in needs.items():
 		target = frappe.db.get_value("QSG Cuadrilla", crew, "warehouse")
@@ -208,5 +253,5 @@ def create_material_requests(plan_doc):
 			"Comment",
 			_("Generada por el plan de despacho {0} para la cuadrilla {1}").format(plan_doc.name, crew),
 		)
-		created.append(mr.name)
+		created[crew] = mr.name
 	return created

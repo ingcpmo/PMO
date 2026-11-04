@@ -3,9 +3,10 @@
 Herramienta de gestión de proyectos y operación de cuadrillas para instalaciones y reparaciones **HFC** y **FTTH** (última milla, reconectorizaciones, residencial y empresarial) en Puerto Rico. Es una app de [Frappe](https://github.com/frappe/frappe) que se instala sobre [ERPNext](https://github.com/frappe/erpnext) v16.
 
 - Diseño: [`docs/design/qsg-pmo-design.md`](docs/design/qsg-pmo-design.md)
+- Cobertura del flujo end-to-end: [`docs/design/cobertura-end-to-end.md`](docs/design/cobertura-end-to-end.md)
 - Investigación que llevó a esta base: [`research/`](research/)
 
-## Qué incluye (v0.1)
+## Qué incluye (v0.2)
 
 | Área | Contenido |
 |---|---|
@@ -14,6 +15,11 @@ Herramienta de gestión de proyectos y operación de cuadrillas para instalacion
 | Reglas de cierre | No deja completar sin la evidencia obligatoria, con mediciones fuera de rango o con un código de cierre que no corresponde |
 | Despacho | `QSG Plan de Despacho`: genera una propuesta con el motor de asignación por reglas (habilidad, capacidad, ventana, distancia, zona) y, al aprobarla, asigna las órdenes y crea las solicitudes de materiales de bodega por cuadrilla |
 | Calidad | `QSG Encuesta` de satisfacción y `QSG Evaluacion Contratista` con puntaje ponderado y categoría A/B/C |
+| Contratistas | Asignación individual o masiva a contratista, reasignación con motivo e historial, cuadrillas activas por contratista |
+| Capacidad | Ausencias de cuadrilla, agenda en calendario, reportes *Ocupación de Cuadrillas* y *Capacidad por Contratista* |
+| Post-operación | Garantía configurable y detección de retrabajo atribuido al contratista original |
+| Bodega | Solicitud de materiales por cuadrilla al aprobar el plan y salida de inventario al completar la orden |
+| Tablero | Espacio de trabajo *QSG PMO* con contadores en vivo y reporte *Liquidación de Contratistas* |
 | Roles | QSG Gerente, Despachador, Supervisor Contratista, Técnico, Bodega |
 
 Los rangos de medición y los códigos de cierre de los datos semilla son **valores típicos de la industria**; hay que reemplazarlos por los del manual y el contrato de Liberty.
@@ -38,7 +44,7 @@ bench --site <tu-sitio> run-tests --app qsg_pmo
 ```
 
 - `qsg_pmo/tests/test_engine.py`: motor de asignación y cálculo de SLA (sin base de datos).
-- `qsg_pmo/tests/test_flujo.py`: flujo completo orden → plan → aprobación → cierre → encuesta → evaluación del contratista.
+- `qsg_pmo/tests/test_flujo.py`: flujo completo orden → plan → aprobación → cierre → encuesta → evaluación, y asignación a contratista → reasignación → ausencias → garantía y retrabajo → reportes.
 
 ## Estructura
 

@@ -45,13 +45,17 @@
   "cb_dispatch",
   "route_sequence",
   "estimated_arrival",
+  "estimated_finish",
   "sec_exec",
+  "departed_on",
   "arrived_on",
   "started_on",
   "finished_on",
   "cb_exec",
   "arrival_latitude",
   "arrival_longitude",
+  "arrival_distance_m",
+  "arrival_out_of_range",
   "sec_net",
   "hfc_node",
   "tap",
@@ -64,13 +68,23 @@
   "checklist",
   "sec_mat",
   "materials_used",
+  "material_request",
+  "stock_entry",
   "sec_close",
   "closure_code",
   "closure_result",
   "closure_notes",
   "cb_close",
   "customer_signature",
-  "customer_rating"
+  "customer_rating",
+  "sec_postop",
+  "warranty_until",
+  "is_rework",
+  "cb_postop",
+  "rework_of",
+  "rework_contractor",
+  "sec_events",
+  "events"
  ],
  "fields": [
   {
@@ -102,7 +116,7 @@
    "fieldname": "source",
    "fieldtype": "Select",
    "label": "Origen",
-   "options": "Manual\nImportaci\u00f3n\nAPI"
+   "options": "Manual\nImportación\nAPI"
   },
   {
    "default": "Now",
@@ -121,7 +135,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Estado",
-   "options": "Recibida\nProgramada\nAsignada\nEn ruta\nEn sitio\nCompletada\nNo completada\nReprogramada\nCancelada",
+   "options": "Recibida\nAsignada a contratista\nProgramada\nEn ruta\nEn sitio\nCompletada\nNo completada\nReprogramada\nCancelada",
    "reqd": 1
   },
   {
@@ -130,7 +144,7 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Prioridad",
-   "options": "Baja\nNormal\nAlta\nCr\u00edtica"
+   "options": "Baja\nNormal\nAlta\nCrítica"
   },
   {
    "fieldname": "sla_status",
@@ -165,7 +179,7 @@
    "fieldname": "technology",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Tecnolog\u00eda",
+   "label": "Tecnología",
    "read_only": 1
   },
   {
@@ -183,13 +197,13 @@
    "fetch_from": "work_type.category",
    "fieldname": "category",
    "fieldtype": "Data",
-   "label": "Categor\u00eda",
+   "label": "Categoría",
    "read_only": 1
   },
   {
    "fieldname": "sec_sub",
    "fieldtype": "Section Break",
-   "label": "Suscriptor y ubicaci\u00f3n"
+   "label": "Suscriptor y ubicación"
   },
   {
    "fieldname": "subscriber_name",
@@ -206,13 +220,13 @@
   {
    "fieldname": "phone",
    "fieldtype": "Data",
-   "label": "Tel\u00e9fono",
+   "label": "Teléfono",
    "options": "Phone"
   },
   {
    "fieldname": "address",
    "fieldtype": "Small Text",
-   "label": "Direcci\u00f3n"
+   "label": "Dirección"
   },
   {
    "fieldname": "cb_sub",
@@ -283,13 +297,12 @@
    "options": "QSG Cuadrilla"
   },
   {
-   "fetch_from": "crew.contractor",
+   "description": "Se asigna al contratista primero; la cuadrilla puede definirse después.",
    "fieldname": "contractor",
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "Contratista",
-   "options": "QSG Contratista",
-   "read_only": 1
+   "options": "QSG Contratista"
   },
   {
    "fieldname": "dispatch_plan",
@@ -317,22 +330,22 @@
   {
    "fieldname": "sec_exec",
    "fieldtype": "Section Break",
-   "label": "Ejecuci\u00f3n"
+   "label": "Ejecución"
   },
   {
    "fieldname": "arrived_on",
    "fieldtype": "Datetime",
-   "label": "Lleg\u00f3"
+   "label": "Llegó"
   },
   {
    "fieldname": "started_on",
    "fieldtype": "Datetime",
-   "label": "Inici\u00f3"
+   "label": "Inició"
   },
   {
    "fieldname": "finished_on",
    "fieldtype": "Datetime",
-   "label": "Termin\u00f3"
+   "label": "Terminó"
   },
   {
    "fieldname": "cb_exec",
@@ -393,7 +406,7 @@
   {
    "fieldname": "equipment_serial",
    "fieldtype": "Data",
-   "label": "Serial ONT / m\u00f3dem"
+   "label": "Serial ONT / módem"
   },
   {
    "fieldname": "sec_check",
@@ -425,7 +438,7 @@
   {
    "fieldname": "closure_code",
    "fieldtype": "Link",
-   "label": "C\u00f3digo de cierre",
+   "label": "Código de cierre",
    "options": "QSG Codigo de Cierre"
   },
   {
@@ -452,14 +465,104 @@
   {
    "fieldname": "customer_rating",
    "fieldtype": "Rating",
-   "label": "Satisfacci\u00f3n del cliente",
+   "label": "Satisfacción del cliente",
+   "read_only": 1
+  },
+  {
+   "fieldname": "estimated_finish",
+   "fieldtype": "Datetime",
+   "label": "Fin estimado",
+   "read_only": 1
+  },
+  {
+   "fieldname": "departed_on",
+   "fieldtype": "Datetime",
+   "label": "Salió hacia el sitio"
+  },
+  {
+   "fieldname": "arrival_distance_m",
+   "fieldtype": "Float",
+   "label": "Distancia de llegada (m)",
+   "precision": "0",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "arrival_out_of_range",
+   "fieldtype": "Check",
+   "label": "Llegada fuera del perímetro",
+   "read_only": 1
+  },
+  {
+   "fieldname": "material_request",
+   "fieldtype": "Link",
+   "label": "Solicitud de materiales",
+   "options": "Material Request",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stock_entry",
+   "fieldtype": "Link",
+   "label": "Salida de inventario",
+   "options": "Stock Entry",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sec_postop",
+   "fieldtype": "Section Break",
+   "label": "Post-operación y garantía"
+  },
+  {
+   "fieldname": "warranty_until",
+   "fieldtype": "Date",
+   "label": "Garantía hasta",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_rework",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Es retrabajo / falla en garantía",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_postop",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rework_of",
+   "fieldtype": "Link",
+   "label": "Orden original",
+   "options": "QSG Orden",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rework_contractor",
+   "fieldtype": "Link",
+   "label": "Contratista responsable del retrabajo",
+   "options": "QSG Contratista",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sec_events",
+   "fieldtype": "Section Break",
+   "label": "Historial de la orden"
+  },
+  {
+   "fieldname": "events",
+   "fieldtype": "Table",
+   "label": "Eventos",
+   "options": "QSG Evento Orden",
    "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-05 04:57:10.339718",
+ "modified": "2026-11-04 23:59:00.000000",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Orden",

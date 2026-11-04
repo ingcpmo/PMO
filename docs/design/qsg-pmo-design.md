@@ -79,13 +79,15 @@ Convención: los DocTypes llevan prefijo `QSG` para no chocar con ERPNext (por e
 | Evidencia | `checklist` (tabla `QSG Resultado Checklist`: ítem, tipo, obligatorio, valor, foto, cumple), `materials_used` (tabla `QSG Material Consumido`: Item, cantidad, serial) |
 | Cierre | `closure_code`, `closure_notes`, `customer_signature`, `survey_sent`, `customer_rating` |
 
-**Estados y transiciones**
+**Estados y transiciones** (v0.2)
 
 ```
-Recibida → Programada → Asignada → En ruta → En sitio → Completada
-                │            │                     └──→ No completada → Reprogramada → Programada
-                └────────────┴──→ Cancelada
+Recibida → Asignada a contratista → Programada → En ruta → En sitio → Completada
+    │               │                    │                      └──→ No completada → Reprogramada → (plan)
+    └───────────────┴────────────────────┴──→ Reasignación (con motivo) / Cancelada
 ```
+
+Cada cambio de estado o de asignación queda en la tabla `QSG Evento Orden` (fecha, usuario, de, a, motivo y GPS). Ver la cobertura completa del flujo en [`cobertura-end-to-end.md`](cobertura-end-to-end.md).
 
 Reglas al cerrar (validación en servidor, no solo en pantalla):
 - `Completada` exige un código de cierre con resultado *Completada*, todos los ítems obligatorios del checklist con valor o foto, mediciones dentro de rango y al menos un material o equipo registrado si el tipo de trabajo tiene kit.

@@ -16,6 +16,7 @@
   "duration_minutes",
   "sla_hours",
   "rate",
+  "contractor_rate",
   "checklist_template",
   "sec_skills",
   "required_skills",
@@ -114,12 +115,17 @@
    "fieldtype": "Table",
    "label": "Kit de materiales",
    "options": "QSG Kit Material"
+  },
+  {
+   "fieldname": "contractor_rate",
+   "fieldtype": "Currency",
+   "label": "Pago al contratista"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-05 04:57:09.610140",
+ "modified": "2026-11-05 05:08:42.261184",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Tipo de Trabajo",

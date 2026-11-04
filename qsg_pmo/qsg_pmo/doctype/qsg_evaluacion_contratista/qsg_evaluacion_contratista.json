@@ -20,7 +20,9 @@
   "cb2",
   "sla_compliance",
   "evidence_compliance",
-  "avg_rating"
+  "avg_rating",
+  "rework_count",
+  "rework_rate"
  ],
  "fields": [
   {
@@ -109,12 +111,24 @@
    "label": "Satisfacci\u00f3n promedio (1\u20135)",
    "precision": "2",
    "read_only": 1
+  },
+  {
+   "fieldname": "rework_count",
+   "fieldtype": "Int",
+   "label": "Retrabajos en garant\u00eda",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rework_rate",
+   "fieldtype": "Percent",
+   "label": "Tasa de retrabajo",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-05 04:57:10.604525",
+ "modified": "2026-11-05 05:08:42.576302",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Evaluacion Contratista",

@@ -25,6 +25,7 @@ REASON_NO_SKILL = "Ninguna cuadrilla tiene las habilidades requeridas"
 REASON_NO_CAPACITY = "Las cuadrillas con la habilidad ya están a capacidad"
 REASON_NO_WINDOW = "Ninguna cuadrilla llega dentro de la ventana o del turno"
 REASON_NO_LOCATION = "La orden no tiene coordenadas"
+REASON_NO_CONTRACTOR_CREW = "El contratista asignado no tiene cuadrillas disponibles con la habilidad"
 
 
 @dataclass
@@ -41,6 +42,8 @@ class Job:
 	priority: str = "Normal"
 	sla_due: datetime | None = None
 	zone: str | None = None
+	# Si la orden ya fue asignada a un contratista, solo sus cuadrillas son elegibles
+	contractor: str | None = None
 
 
 @dataclass
@@ -55,6 +58,11 @@ class Crew:
 	skills: set[str] = field(default_factory=set)
 	max_orders: int = 6
 	zone: str | None = None
+	contractor: str | None = None
+	# Minutos de bonificación (positivo) o penalización (negativo) por la calificación del contratista
+	quality_bonus_minutes: float = 0.0
+	# Órdenes que la cuadrilla ya tiene programadas ese día en otros planes
+	preassigned: int = 0
 	# Estado interno durante la planificación
 	_last_lat: float = field(init=False, default=0.0)
 	_last_lng: float = field(init=False, default=0.0)
@@ -68,13 +76,14 @@ class Crew:
 		self._last_lat = self.latitude
 		self._last_lng = self.longitude
 		self._available_at = self.shift_start
-		self._count = 0
+		self._count = self.preassigned
 
 
 @dataclass
 class Assignment:
 	order: str
 	crew: str
+	contractor: str | None
 	sequence: int
 	estimated_arrival: datetime
 	estimated_finish: datetime
@@ -133,9 +142,13 @@ def plan(jobs: list[Job], crews: list[Crew], settings: Settings | None = None):
 			unassigned.append(Unassigned(job.order, REASON_NO_LOCATION))
 			continue
 
-		skilled = [c for c in crews if job.skills <= c.skills]
+		pool = [c for c in crews if not job.contractor or c.contractor == job.contractor]
+		skilled = [c for c in pool if job.skills <= c.skills]
 		if not skilled:
-			unassigned.append(Unassigned(job.order, REASON_NO_SKILL))
+			reason = (
+				REASON_NO_CONTRACTOR_CREW if job.contractor and len(pool) < len(crews) else REASON_NO_SKILL
+			)
+			unassigned.append(Unassigned(job.order, reason))
 			continue
 
 		with_capacity = [c for c in skilled if c._count < c.max_orders]
@@ -158,6 +171,7 @@ def plan(jobs: list[Job], crews: list[Crew], settings: Settings | None = None):
 			cost = travel_min + delay_min * settings.delay_weight + c._count * settings.load_penalty_minutes
 			if job.zone and c.zone == job.zone:
 				cost -= settings.zone_bonus_minutes
+			cost -= c.quality_bonus_minutes
 			key = (cost, c.crew)
 			if best is None or key < best[0]:
 				best = (key, c, km, travel_min, start, finish)
@@ -174,6 +188,7 @@ def plan(jobs: list[Job], crews: list[Crew], settings: Settings | None = None):
 			Assignment(
 				order=job.order,
 				crew=c.crew,
+				contractor=c.contractor,
 				sequence=c._count,
 				estimated_arrival=start,
 				estimated_finish=finish,
