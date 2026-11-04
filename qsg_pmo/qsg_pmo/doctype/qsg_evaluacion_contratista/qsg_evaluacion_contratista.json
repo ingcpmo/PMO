@@ -1,0 +1,178 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "format:EVAL-{contractor}-{period_start}",
+ "creation": "2026-11-05 04:57:10.604525",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "contractor",
+  "period_start",
+  "period_end",
+  "cb1",
+  "score",
+  "grade",
+  "sec_m",
+  "orders_total",
+  "window_compliance",
+  "first_time_right",
+  "cb2",
+  "sla_compliance",
+  "evidence_compliance",
+  "avg_rating"
+ ],
+ "fields": [
+  {
+   "fieldname": "contractor",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Contratista",
+   "options": "QSG Contratista",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period_start",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Desde",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period_end",
+   "fieldtype": "Date",
+   "label": "Hasta",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "score",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Puntaje",
+   "read_only": 1
+  },
+  {
+   "fieldname": "grade",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Categor\u00eda",
+   "options": "\nA\nB\nC",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_m",
+   "fieldtype": "Section Break",
+   "label": "M\u00e9tricas"
+  },
+  {
+   "fieldname": "orders_total",
+   "fieldtype": "Int",
+   "label": "\u00d3rdenes cerradas",
+   "read_only": 1
+  },
+  {
+   "fieldname": "window_compliance",
+   "fieldtype": "Percent",
+   "label": "Cumplimiento de ventana",
+   "read_only": 1
+  },
+  {
+   "fieldname": "first_time_right",
+   "fieldtype": "Percent",
+   "label": "Primera visita exitosa",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sla_compliance",
+   "fieldtype": "Percent",
+   "label": "Cumplimiento SLA",
+   "read_only": 1
+  },
+  {
+   "fieldname": "evidence_compliance",
+   "fieldtype": "Percent",
+   "label": "Evidencia completa",
+   "read_only": 1
+  },
+  {
+   "fieldname": "avg_rating",
+   "fieldtype": "Float",
+   "label": "Satisfacci\u00f3n promedio (1\u20135)",
+   "precision": "2",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-05 04:57:10.604525",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Evaluacion Contratista",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Gerente",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Despachador",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Supervisor Contratista",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

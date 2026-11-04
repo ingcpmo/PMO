@@ -1,0 +1,239 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "field:crew_code",
+ "creation": "2026-11-05 04:57:09.259237",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "crew_code",
+  "contractor",
+  "leader_name",
+  "active",
+  "cb1",
+  "base_zone",
+  "warehouse",
+  "vehicle_plate",
+  "sec_skills",
+  "skills",
+  "max_orders_per_day",
+  "cb2",
+  "shift_start",
+  "shift_end",
+  "sec_loc",
+  "start_latitude",
+  "cb3",
+  "start_longitude",
+  "sec_members",
+  "members"
+ ],
+ "fields": [
+  {
+   "fieldname": "crew_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "C\u00f3digo de cuadrilla",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "contractor",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Contratista",
+   "options": "QSG Contratista",
+   "reqd": 1
+  },
+  {
+   "fieldname": "leader_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "L\u00edder"
+  },
+  {
+   "default": "1",
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Activa"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "base_zone",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Zona base",
+   "options": "QSG Zona"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Almac\u00e9n (cami\u00f3n)",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "vehicle_plate",
+   "fieldtype": "Data",
+   "label": "Tablilla del veh\u00edculo"
+  },
+  {
+   "fieldname": "sec_skills",
+   "fieldtype": "Section Break",
+   "label": "Habilidades y capacidad"
+  },
+  {
+   "fieldname": "skills",
+   "fieldtype": "Table MultiSelect",
+   "label": "Habilidades",
+   "options": "QSG Habilidad Item"
+  },
+  {
+   "default": "6",
+   "fieldname": "max_orders_per_day",
+   "fieldtype": "Int",
+   "label": "M\u00e1ximo de \u00f3rdenes por d\u00eda"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "07:00:00",
+   "fieldname": "shift_start",
+   "fieldtype": "Time",
+   "label": "Inicio de turno"
+  },
+  {
+   "default": "17:00:00",
+   "fieldname": "shift_end",
+   "fieldtype": "Time",
+   "label": "Fin de turno"
+  },
+  {
+   "fieldname": "sec_loc",
+   "fieldtype": "Section Break",
+   "label": "Punto de salida"
+  },
+  {
+   "fieldname": "start_latitude",
+   "fieldtype": "Float",
+   "label": "Latitud",
+   "precision": "6"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start_longitude",
+   "fieldtype": "Float",
+   "label": "Longitud",
+   "precision": "6"
+  },
+  {
+   "fieldname": "sec_members",
+   "fieldtype": "Section Break",
+   "label": "Miembros"
+  },
+  {
+   "fieldname": "members",
+   "fieldtype": "Table",
+   "label": "Miembros",
+   "options": "QSG Cuadrilla Miembro"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-05 04:57:09.259237",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Cuadrilla",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Gerente",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Despachador",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Supervisor Contratista",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Tecnico",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Bodega",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

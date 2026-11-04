@@ -1,0 +1,98 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-11-05 04:57:08.689205",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "description",
+  "item_type",
+  "mandatory",
+  "unit",
+  "min_value",
+  "max_value",
+  "value",
+  "photo",
+  "compliant"
+ ],
+ "fields": [
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Paso / evidencia",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "item_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Tipo",
+   "options": "Foto\nMedici\u00f3n\nS\u00ed/No\nTexto",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "mandatory",
+   "fieldtype": "Check",
+   "label": "Obligatorio",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "label": "Unidad",
+   "read_only": 1
+  },
+  {
+   "fieldname": "min_value",
+   "fieldtype": "Float",
+   "label": "M\u00ednimo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "max_value",
+   "fieldtype": "Float",
+   "label": "M\u00e1ximo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Valor"
+  },
+  {
+   "fieldname": "photo",
+   "fieldtype": "Attach Image",
+   "in_list_view": 1,
+   "label": "Foto"
+  },
+  {
+   "default": "0",
+   "fieldname": "compliant",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Cumple",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-05 04:57:08.689205",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Resultado Checklist",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

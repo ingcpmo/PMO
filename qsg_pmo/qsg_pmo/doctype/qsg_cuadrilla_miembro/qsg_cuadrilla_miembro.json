@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-11-05 04:57:08.448979",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "member_name",
+  "employee",
+  "role_in_crew",
+  "phone"
+ ],
+ "fields": [
+  {
+   "fieldname": "member_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nombre",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Empleado",
+   "options": "Employee"
+  },
+  {
+   "default": "T\u00e9cnico",
+   "fieldname": "role_in_crew",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Rol",
+   "options": "L\u00edder\nT\u00e9cnico\nAyudante"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tel\u00e9fono",
+   "options": "Phone"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-05 04:57:08.448979",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Cuadrilla Miembro",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

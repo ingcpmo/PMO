@@ -1,0 +1,165 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "creation": "2026-11-05 04:57:10.698448",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "default_customer",
+  "central_warehouse",
+  "sla_risk_minutes",
+  "sec_eng",
+  "average_speed_kmh",
+  "road_factor",
+  "load_penalty_minutes",
+  "zone_bonus_minutes",
+  "cb_eng",
+  "vroom_url",
+  "osrm_url",
+  "sec_score",
+  "w_window",
+  "w_ftr",
+  "w_sla",
+  "cb_score",
+  "w_evidence",
+  "w_rating"
+ ],
+ "fields": [
+  {
+   "fieldname": "default_customer",
+   "fieldtype": "Link",
+   "label": "Cliente por defecto",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "central_warehouse",
+   "fieldtype": "Link",
+   "label": "Bodega central",
+   "options": "Warehouse"
+  },
+  {
+   "default": "120",
+   "fieldname": "sla_risk_minutes",
+   "fieldtype": "Int",
+   "label": "Minutos para marcar SLA en riesgo"
+  },
+  {
+   "fieldname": "sec_eng",
+   "fieldtype": "Section Break",
+   "label": "Motor de asignaci\u00f3n"
+  },
+  {
+   "default": "35",
+   "fieldname": "average_speed_kmh",
+   "fieldtype": "Float",
+   "label": "Velocidad media (km/h)"
+  },
+  {
+   "default": "1.4",
+   "fieldname": "road_factor",
+   "fieldtype": "Float",
+   "label": "Factor de sinuosidad de carreteras"
+  },
+  {
+   "default": "10",
+   "fieldname": "load_penalty_minutes",
+   "fieldtype": "Float",
+   "label": "Penalizaci\u00f3n por carga (min por orden)"
+  },
+  {
+   "default": "15",
+   "fieldname": "zone_bonus_minutes",
+   "fieldtype": "Float",
+   "label": "Bonificaci\u00f3n por misma zona (min)"
+  },
+  {
+   "fieldname": "cb_eng",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vroom_url",
+   "fieldtype": "Data",
+   "label": "URL de VROOM"
+  },
+  {
+   "fieldname": "osrm_url",
+   "fieldtype": "Data",
+   "label": "URL de OSRM"
+  },
+  {
+   "fieldname": "sec_score",
+   "fieldtype": "Section Break",
+   "label": "Pesos de evaluaci\u00f3n de contratistas (%)"
+  },
+  {
+   "default": "25",
+   "fieldname": "w_window",
+   "fieldtype": "Percent",
+   "label": "Cumplimiento de ventana"
+  },
+  {
+   "default": "25",
+   "fieldname": "w_ftr",
+   "fieldtype": "Percent",
+   "label": "Primera visita exitosa"
+  },
+  {
+   "default": "20",
+   "fieldname": "w_sla",
+   "fieldtype": "Percent",
+   "label": "Cumplimiento SLA"
+  },
+  {
+   "fieldname": "cb_score",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "15",
+   "fieldname": "w_evidence",
+   "fieldtype": "Percent",
+   "label": "Evidencia completa"
+  },
+  {
+   "default": "15",
+   "fieldname": "w_rating",
+   "fieldtype": "Percent",
+   "label": "Satisfacci\u00f3n del cliente"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-05 04:57:10.698448",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Configuracion",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "QSG Gerente",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

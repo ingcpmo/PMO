@@ -1,0 +1,550 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-11-05 04:57:10.339718",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "customer",
+  "external_order_id",
+  "source",
+  "received_on",
+  "cb_top",
+  "status",
+  "priority",
+  "sla_status",
+  "sla_due",
+  "sec_work",
+  "work_type",
+  "technology",
+  "cb_work",
+  "segment",
+  "category",
+  "sec_sub",
+  "subscriber_name",
+  "account_number",
+  "phone",
+  "address",
+  "cb_sub",
+  "municipality",
+  "zone",
+  "latitude",
+  "longitude",
+  "sec_appt",
+  "appointment_date",
+  "window_start",
+  "cb_appt",
+  "window_end",
+  "sec_dispatch",
+  "crew",
+  "contractor",
+  "dispatch_plan",
+  "cb_dispatch",
+  "route_sequence",
+  "estimated_arrival",
+  "sec_exec",
+  "arrived_on",
+  "started_on",
+  "finished_on",
+  "cb_exec",
+  "arrival_latitude",
+  "arrival_longitude",
+  "sec_net",
+  "hfc_node",
+  "tap",
+  "olt",
+  "cb_net",
+  "pon_port",
+  "splitter_cto",
+  "equipment_serial",
+  "sec_check",
+  "checklist",
+  "sec_mat",
+  "materials_used",
+  "sec_close",
+  "closure_code",
+  "closure_result",
+  "closure_notes",
+  "cb_close",
+  "customer_signature",
+  "customer_rating"
+ ],
+ "fields": [
+  {
+   "default": "QSG-ORD-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Serie",
+   "options": "QSG-ORD-.YYYY.-.#####"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Cliente",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "external_order_id",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Orden del cliente",
+   "reqd": 1
+  },
+  {
+   "default": "Manual",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Origen",
+   "options": "Manual\nImportaci\u00f3n\nAPI"
+  },
+  {
+   "default": "Now",
+   "fieldname": "received_on",
+   "fieldtype": "Datetime",
+   "label": "Recibida"
+  },
+  {
+   "fieldname": "cb_top",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Recibida",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Estado",
+   "options": "Recibida\nProgramada\nAsignada\nEn ruta\nEn sitio\nCompletada\nNo completada\nReprogramada\nCancelada",
+   "reqd": 1
+  },
+  {
+   "default": "Normal",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Prioridad",
+   "options": "Baja\nNormal\nAlta\nCr\u00edtica"
+  },
+  {
+   "fieldname": "sla_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Estado SLA",
+   "options": "\nEn tiempo\nEn riesgo\nVencido\nCumplido\nIncumplido",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sla_due",
+   "fieldtype": "Datetime",
+   "label": "Vence SLA",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_work",
+   "fieldtype": "Section Break",
+   "label": "Trabajo"
+  },
+  {
+   "fieldname": "work_type",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Tipo de trabajo",
+   "options": "QSG Tipo de Trabajo",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "work_type.technology",
+   "fieldname": "technology",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tecnolog\u00eda",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_work",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "work_type.segment",
+   "fieldname": "segment",
+   "fieldtype": "Data",
+   "label": "Segmento",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "work_type.category",
+   "fieldname": "category",
+   "fieldtype": "Data",
+   "label": "Categor\u00eda",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_sub",
+   "fieldtype": "Section Break",
+   "label": "Suscriptor y ubicaci\u00f3n"
+  },
+  {
+   "fieldname": "subscriber_name",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "label": "Suscriptor",
+   "reqd": 1
+  },
+  {
+   "fieldname": "account_number",
+   "fieldtype": "Data",
+   "label": "Cuenta"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Tel\u00e9fono",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Small Text",
+   "label": "Direcci\u00f3n"
+  },
+  {
+   "fieldname": "cb_sub",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "municipality",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Municipio"
+  },
+  {
+   "fieldname": "zone",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Zona",
+   "options": "QSG Zona"
+  },
+  {
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "label": "Latitud",
+   "precision": "6"
+  },
+  {
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "label": "Longitud",
+   "precision": "6"
+  },
+  {
+   "fieldname": "sec_appt",
+   "fieldtype": "Section Break",
+   "label": "Cita"
+  },
+  {
+   "fieldname": "appointment_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Fecha de cita"
+  },
+  {
+   "fieldname": "window_start",
+   "fieldtype": "Time",
+   "label": "Ventana desde"
+  },
+  {
+   "fieldname": "cb_appt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "window_end",
+   "fieldtype": "Time",
+   "label": "Ventana hasta"
+  },
+  {
+   "fieldname": "sec_dispatch",
+   "fieldtype": "Section Break",
+   "label": "Despacho"
+  },
+  {
+   "fieldname": "crew",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cuadrilla",
+   "options": "QSG Cuadrilla"
+  },
+  {
+   "fetch_from": "crew.contractor",
+   "fieldname": "contractor",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Contratista",
+   "options": "QSG Contratista",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dispatch_plan",
+   "fieldtype": "Link",
+   "label": "Plan de despacho",
+   "options": "QSG Plan de Despacho",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_dispatch",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "route_sequence",
+   "fieldtype": "Int",
+   "label": "Secuencia en ruta",
+   "read_only": 1
+  },
+  {
+   "fieldname": "estimated_arrival",
+   "fieldtype": "Datetime",
+   "label": "Llegada estimada",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_exec",
+   "fieldtype": "Section Break",
+   "label": "Ejecuci\u00f3n"
+  },
+  {
+   "fieldname": "arrived_on",
+   "fieldtype": "Datetime",
+   "label": "Lleg\u00f3"
+  },
+  {
+   "fieldname": "started_on",
+   "fieldtype": "Datetime",
+   "label": "Inici\u00f3"
+  },
+  {
+   "fieldname": "finished_on",
+   "fieldtype": "Datetime",
+   "label": "Termin\u00f3"
+  },
+  {
+   "fieldname": "cb_exec",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "arrival_latitude",
+   "fieldtype": "Float",
+   "label": "Latitud de llegada",
+   "precision": "6"
+  },
+  {
+   "fieldname": "arrival_longitude",
+   "fieldtype": "Float",
+   "label": "Longitud de llegada",
+   "precision": "6"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sec_net",
+   "fieldtype": "Section Break",
+   "label": "Red y equipo"
+  },
+  {
+   "depends_on": "eval:doc.technology=='HFC'",
+   "fieldname": "hfc_node",
+   "fieldtype": "Data",
+   "label": "Nodo HFC"
+  },
+  {
+   "depends_on": "eval:doc.technology=='HFC'",
+   "fieldname": "tap",
+   "fieldtype": "Data",
+   "label": "Tap"
+  },
+  {
+   "depends_on": "eval:doc.technology=='FTTH'",
+   "fieldname": "olt",
+   "fieldtype": "Data",
+   "label": "OLT"
+  },
+  {
+   "fieldname": "cb_net",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.technology=='FTTH'",
+   "fieldname": "pon_port",
+   "fieldtype": "Data",
+   "label": "Puerto PON"
+  },
+  {
+   "depends_on": "eval:doc.technology=='FTTH'",
+   "fieldname": "splitter_cto",
+   "fieldtype": "Data",
+   "label": "Splitter / CTO"
+  },
+  {
+   "fieldname": "equipment_serial",
+   "fieldtype": "Data",
+   "label": "Serial ONT / m\u00f3dem"
+  },
+  {
+   "fieldname": "sec_check",
+   "fieldtype": "Section Break",
+   "label": "Checklist y evidencia"
+  },
+  {
+   "fieldname": "checklist",
+   "fieldtype": "Table",
+   "label": "Checklist",
+   "options": "QSG Resultado Checklist"
+  },
+  {
+   "fieldname": "sec_mat",
+   "fieldtype": "Section Break",
+   "label": "Materiales consumidos"
+  },
+  {
+   "fieldname": "materials_used",
+   "fieldtype": "Table",
+   "label": "Materiales",
+   "options": "QSG Material Consumido"
+  },
+  {
+   "fieldname": "sec_close",
+   "fieldtype": "Section Break",
+   "label": "Cierre"
+  },
+  {
+   "fieldname": "closure_code",
+   "fieldtype": "Link",
+   "label": "C\u00f3digo de cierre",
+   "options": "QSG Codigo de Cierre"
+  },
+  {
+   "fetch_from": "closure_code.result",
+   "fieldname": "closure_result",
+   "fieldtype": "Data",
+   "label": "Resultado",
+   "read_only": 1
+  },
+  {
+   "fieldname": "closure_notes",
+   "fieldtype": "Small Text",
+   "label": "Notas de cierre"
+  },
+  {
+   "fieldname": "cb_close",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer_signature",
+   "fieldtype": "Signature",
+   "label": "Firma del cliente"
+  },
+  {
+   "fieldname": "customer_rating",
+   "fieldtype": "Rating",
+   "label": "Satisfacci\u00f3n del cliente",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-05 04:57:10.339718",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Orden",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Gerente",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Despachador",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Supervisor Contratista",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Tecnico",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Bodega",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "external_order_id,subscriber_name,municipality",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "subscriber_name",
+ "track_changes": 1
+}

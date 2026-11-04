@@ -1,0 +1,209 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "field:work_type_code",
+ "creation": "2026-11-05 04:57:09.610140",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "work_type_code",
+  "work_type_name",
+  "technology",
+  "segment",
+  "category",
+  "cb1",
+  "duration_minutes",
+  "sla_hours",
+  "rate",
+  "checklist_template",
+  "sec_skills",
+  "required_skills",
+  "sec_kit",
+  "material_kit"
+ ],
+ "fields": [
+  {
+   "fieldname": "work_type_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "C\u00f3digo",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "work_type_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nombre",
+   "reqd": 1
+  },
+  {
+   "fieldname": "technology",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Tecnolog\u00eda",
+   "options": "FTTH\nHFC",
+   "reqd": 1
+  },
+  {
+   "fieldname": "segment",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Segmento",
+   "options": "Residencial\nEmpresarial",
+   "reqd": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Categor\u00eda",
+   "options": "Instalaci\u00f3n\nReparaci\u00f3n\nReconectorizaci\u00f3n\nUpgrade\nTraslado\nDesconexi\u00f3n",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "90",
+   "fieldname": "duration_minutes",
+   "fieldtype": "Int",
+   "label": "Duraci\u00f3n estimada (min)",
+   "reqd": 1
+  },
+  {
+   "description": "Si la orden tiene ventana de cita, el vencimiento es el fin de la ventana.",
+   "fieldname": "sla_hours",
+   "fieldtype": "Float",
+   "label": "SLA (horas desde recepci\u00f3n)"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "label": "Tarifa al cliente"
+  },
+  {
+   "fieldname": "checklist_template",
+   "fieldtype": "Link",
+   "label": "Plantilla de checklist",
+   "options": "QSG Plantilla Checklist"
+  },
+  {
+   "fieldname": "sec_skills",
+   "fieldtype": "Section Break",
+   "label": "Habilidades requeridas"
+  },
+  {
+   "fieldname": "required_skills",
+   "fieldtype": "Table MultiSelect",
+   "label": "Habilidades requeridas",
+   "options": "QSG Habilidad Item"
+  },
+  {
+   "fieldname": "sec_kit",
+   "fieldtype": "Section Break",
+   "label": "Kit de materiales"
+  },
+  {
+   "fieldname": "material_kit",
+   "fieldtype": "Table",
+   "label": "Kit de materiales",
+   "options": "QSG Kit Material"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-05 04:57:09.610140",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Tipo de Trabajo",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Gerente",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Despachador",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Supervisor Contratista",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Tecnico",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Bodega",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "work_type_name"
+}

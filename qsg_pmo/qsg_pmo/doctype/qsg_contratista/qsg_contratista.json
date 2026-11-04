@@ -1,0 +1,188 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "field:contractor_name",
+ "creation": "2026-11-05 04:57:09.143113",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "contractor_name",
+  "supplier",
+  "is_internal",
+  "status",
+  "cb1",
+  "contact_name",
+  "phone",
+  "email",
+  "insurance_expiry",
+  "sec_score",
+  "current_score",
+  "current_grade"
+ ],
+ "fields": [
+  {
+   "fieldname": "contractor_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contratista",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "label": "Proveedor (ERPNext)",
+   "options": "Supplier"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_internal",
+   "fieldtype": "Check",
+   "label": "Cuadrillas propias"
+  },
+  {
+   "default": "Activo",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Estado",
+   "options": "Activo\nSuspendido\nInactivo"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_name",
+   "fieldtype": "Data",
+   "label": "Contacto"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Tel\u00e9fono",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Correo",
+   "options": "Email"
+  },
+  {
+   "fieldname": "insurance_expiry",
+   "fieldtype": "Date",
+   "label": "Vencimiento de seguro"
+  },
+  {
+   "fieldname": "sec_score",
+   "fieldtype": "Section Break",
+   "label": "Calidad"
+  },
+  {
+   "fieldname": "current_score",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Puntaje actual",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_grade",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Categor\u00eda",
+   "options": "\nA\nB\nC",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-05 04:57:09.143113",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Contratista",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Gerente",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Despachador",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Supervisor Contratista",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Tecnico",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Bodega",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
