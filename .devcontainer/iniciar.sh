@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Primer arranque en GitHub Codespaces: instala QSG PMO (ERPNext v16 + la app) con Docker, carga la
 # demostración, crea usuarios por rol y deja lista la jornada simulada. Tarda 10 a 15 minutos.
+# El puerto 8080 se abre al final, cuando la app ya responde: así el navegador no muestra errores.
 set -euo pipefail
 cd "$(dirname "$0")/../instalacion/pc"
 
+aleatorio() { openssl rand -hex "$1" 2>/dev/null || head -c "$1" /dev/urandom | od -An -tx1 | tr -d ' \n'; }
 if [ ! -f .env ]; then
-  printf 'DB_ROOT_PASSWORD=%s\nADMIN_PASSWORD=%s\n' "$(openssl rand -hex 16)" "Qsg-$(openssl rand -hex 6)" > .env
+  printf 'DB_ROOT_PASSWORD=%s\nADMIN_PASSWORD=%s\n' "$(aleatorio 16)" "Qsg-$(aleatorio 6)" > .env
   chmod 600 .env
 fi
 
@@ -26,22 +28,25 @@ done
 echo "==> Construyendo la imagen de QSG PMO..."
 docker compose build
 echo "==> Arrancando los servicios..."
-PUERTO=8080 docker compose up -d
+mapfile -t SERVICIOS < <(docker compose config --services | grep -vx frontend)
+PUERTO=8080 docker compose up -d "${SERVICIOS[@]}"
 
-echo "==> Creando el sitio y cargando la demostración..."
+echo "==> Creando el sitio y cargando la demostración (la parte más larga)..."
 until [ "$(docker inspect -f '{{.State.Status}}' qsg-pmo-create-site-1 2>/dev/null)" = "exited" ]; do sleep 5; done
 if [ "$(docker inspect -f '{{.State.ExitCode}}' qsg-pmo-create-site-1)" != "0" ]; then
   docker compose logs create-site | tail -40
   echo "La creación del sitio falló."
   exit 1
 fi
-docker compose restart backend queue-short queue-long scheduler websocket frontend >/dev/null
+docker compose restart backend queue-short queue-long scheduler websocket >/dev/null
 
 BENCH=(docker compose exec -T backend bench --site frontend)
 "${BENCH[@]}" set-config qsg_demo_vivo 1 >/dev/null
 "${BENCH[@]}" execute qsg_pmo.inteligencia.demo_vivo.preparar_sitio >/dev/null
 "${BENCH[@]}" execute qsg_pmo.inteligencia.demo_vivo.reiniciar >/dev/null
 
+echo "==> Abriendo el puerto 8080..."
+PUERTO=8080 docker compose up -d frontend
 until curl -sf http://localhost:8080/api/method/ping >/dev/null; do sleep 3; done
 ADMIN_PW="$(grep '^ADMIN_PASSWORD=' .env | cut -d= -f2-)"
 URL="http://localhost:8080"

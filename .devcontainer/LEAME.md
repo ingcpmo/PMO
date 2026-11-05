@@ -1,8 +1,9 @@
 # QSG PMO en GitHub Codespaces
 
 Este Codespace instala QSG PMO completo (ERPNext v16 + la app) con datos de demostración. El primer
-arranque tarda **10 a 15 minutos**: siga el avance en la terminal *Creating codespace*. Al terminar
-se abre la pestaña **Ports** con el puerto **8080 (QSG PMO)**; haga clic en el globo para abrir la app.
+arranque tarda **10 a 15 minutos**: siga el avance en la terminal *Creating codespace*. Cuando la app
+ya responde, la terminal muestra «QSG PMO está listo» y el navegador la abre solo. Si no se abre:
+pestaña **Ports** → puerto **8080 (QSG PMO)** → clic en el globo.
 
 ## Usuarios de la demostración
 
