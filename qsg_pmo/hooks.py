@@ -291,3 +291,11 @@ scheduler_events = {
 		"*/15 * * * *": ["qsg_pmo.qsg_pmo.doctype.qsg_orden.qsg_orden.refresh_open_sla"],
 	},
 }
+
+# Un técnico solo ve las órdenes de sus cuadrillas
+permission_query_conditions = {
+	"QSG Orden": "qsg_pmo.permissions.orden_query_conditions",
+}
+has_permission = {
+	"QSG Orden": "qsg_pmo.permissions.orden_has_permission",
+}
