@@ -312,7 +312,9 @@ def recibir_orden(**data) -> dict:
 	if name:
 		doc = frappe.get_doc("QSG Orden", name)
 		if doc.status not in ("Recibida", "Asignada a contratista", "Reprogramada"):
-			frappe.throw(_("La orden {0} ya está en estado {1} y no se puede modificar.").format(name, doc.status))
+			frappe.throw(
+				_("La orden {0} ya está en estado {1} y no se puede modificar.").format(name, doc.status)
+			)
 		doc.update(values)
 		doc.save()
 		created = False

@@ -28,14 +28,86 @@ CREWS = [
 
 ORDERS = [
 	# id cliente, tipo, (lat, lng), ventana, zona, municipio, suscriptor, dirección
-	("LPR-552301", "FTTH-INST-RES", (18.4500, -66.0700), ("08:00", "12:00"), "Metro", "San Juan", "María Torres", "Calle Loíza 1854"),
-	("LPR-552302", "FTTH-INST-EMP", (18.4200, -66.0600), ("08:00", "12:00"), "Metro", "Guaynabo", "Café del Sur Inc.", "Ave. Ponce de León 1500, Local 3"),
-	("LPR-552303", "FTTH-RECON", (18.3900, -66.1600), ("12:00", "17:00"), "Metro", "Bayamón", "Luis Ortiz", "Urb. Santa Rosa, Calle 9 B-12"),
-	("LPR-552304", "HFC-INST-RES", (18.2400, -66.0300), ("08:00", "12:00"), "Este", "Caguas", "Carmen Ruiz", "Calle Ruiz Belvis 45"),
-	("LPR-552305", "HFC-RECON", (18.2600, -66.0100), ("12:00", "17:00"), "Este", "Gurabo", "Pedro Santiago", "Bo. Navarro, Carr. 181 km 3"),
-	("LPR-552306", "FTTH-INST-RES", (18.4000, -66.1400), ("12:00", "17:00"), "Metro", "Bayamón", "Ana Meléndez", "Calle Del Parque 352, Apt 4B"),
-	("LPR-552307", "FTTH-RECON", (18.4489, -66.0632), ("13:00", "17:00"), "Metro", "San Juan", "Ramón Vega", "Calle Cerra 610"),
-	("LPR-552308", "HFC-REP-RES", (18.0111, -66.6141), ("08:00", "12:00"), "Sur", "Ponce", "Gloria Pagán", "Calle Marina 22"),
+	(
+		"LPR-552301",
+		"FTTH-INST-RES",
+		(18.4500, -66.0700),
+		("08:00", "12:00"),
+		"Metro",
+		"San Juan",
+		"María Torres",
+		"Calle Loíza 1854",
+	),
+	(
+		"LPR-552302",
+		"FTTH-INST-EMP",
+		(18.4200, -66.0600),
+		("08:00", "12:00"),
+		"Metro",
+		"Guaynabo",
+		"Café del Sur Inc.",
+		"Ave. Ponce de León 1500, Local 3",
+	),
+	(
+		"LPR-552303",
+		"FTTH-RECON",
+		(18.3900, -66.1600),
+		("12:00", "17:00"),
+		"Metro",
+		"Bayamón",
+		"Luis Ortiz",
+		"Urb. Santa Rosa, Calle 9 B-12",
+	),
+	(
+		"LPR-552304",
+		"HFC-INST-RES",
+		(18.2400, -66.0300),
+		("08:00", "12:00"),
+		"Este",
+		"Caguas",
+		"Carmen Ruiz",
+		"Calle Ruiz Belvis 45",
+	),
+	(
+		"LPR-552305",
+		"HFC-RECON",
+		(18.2600, -66.0100),
+		("12:00", "17:00"),
+		"Este",
+		"Gurabo",
+		"Pedro Santiago",
+		"Bo. Navarro, Carr. 181 km 3",
+	),
+	(
+		"LPR-552306",
+		"FTTH-INST-RES",
+		(18.4000, -66.1400),
+		("12:00", "17:00"),
+		"Metro",
+		"Bayamón",
+		"Ana Meléndez",
+		"Calle Del Parque 352, Apt 4B",
+	),
+	(
+		"LPR-552307",
+		"FTTH-RECON",
+		(18.4489, -66.0632),
+		("13:00", "17:00"),
+		"Metro",
+		"San Juan",
+		"Ramón Vega",
+		"Calle Cerra 610",
+	),
+	(
+		"LPR-552308",
+		"HFC-REP-RES",
+		(18.0111, -66.6141),
+		("08:00", "12:00"),
+		"Sur",
+		"Ponce",
+		"Gloria Pagán",
+		"Calle Marina 22",
+	),
 ]
 
 
@@ -112,6 +184,11 @@ def _tecnico(crew_code):
 	if not any(m.user == TECH_EMAIL for m in crew.members):
 		crew.append(
 			"members",
-			{"member_name": "José Rivera", "user": TECH_EMAIL, "role_in_crew": "Líder", "phone": "787-555-0101"},
+			{
+				"member_name": "José Rivera",
+				"user": TECH_EMAIL,
+				"role_in_crew": "Líder",
+				"phone": "787-555-0101",
+			},
 		)
 		crew.save()
