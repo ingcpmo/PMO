@@ -1,0 +1,80 @@
+# Pruebas automáticas de QSG PMO en cada cambio.
+# 1. Rápidas: estilo (ruff) y pruebas sin base de datos (motor, SLA e inteligencia) en Python 3.14.
+# 2. Servidor real: levanta la misma instalación Docker de PC (ERPNext v16 + QSG PMO con la
+#    demostración), corre todas las pruebas de integración, los 34 ataques de seguridad y la
+#    simulación de una orden de Liberty de inicio a fin.
+name: Pruebas
+
+on:
+  push:
+    paths-ignore:
+      - "docs/**"
+      - "research/**"
+      - "**.md"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  rapidas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - name: Instalar ruff
+        run: pip install ruff
+      - name: Estilo y errores
+        run: |
+          ruff check qsg_pmo
+          ruff format --check qsg_pmo
+      - name: Pruebas sin base de datos
+        run: python -m unittest -v qsg_pmo.tests.test_engine qsg_pmo.tests.test_inteligencia
+
+  servidor:
+    needs: rapidas
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: instalacion/pc
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Librería para los scripts de auditoría
+        run: pip install requests
+      - name: Contraseñas de la instalación de prueba
+        run: |
+          printf 'DB_ROOT_PASSWORD=%s\nADMIN_PASSWORD=%s\n' "$(openssl rand -hex 16)" "Qsg-$(openssl rand -hex 12)" > .env
+      - name: Construir y arrancar (ERPNext v16 + QSG PMO)
+        run: |
+          docker compose build
+          PUERTO=8080 docker compose up -d
+      - name: Esperar la creación del sitio y la demostración
+        run: |
+          for i in $(seq 1 180); do
+            estado=$(docker inspect -f '{{.State.Status}}' qsg-pmo-create-site-1 2>/dev/null || true)
+            [ "$estado" = "exited" ] && break
+            sleep 5
+          done
+          docker compose logs create-site | tail -20
+          test "$(docker inspect -f '{{.State.ExitCode}}' qsg-pmo-create-site-1)" = "0"
+      - name: Pruebas de integración
+        run: |
+          docker compose exec -T backend bench --site frontend set-config allow_tests true
+          docker compose exec -T backend bench --site frontend run-tests --app qsg_pmo
+      - name: Auditoría de seguridad (34 ataques) y simulación de inicio a fin
+        run: |
+          docker compose restart backend frontend >/dev/null
+          for i in $(seq 1 60); do curl -sf http://localhost:8080/api/method/ping >/dev/null && break; sleep 3; done
+          docker compose exec -T backend bench --site frontend execute qsg_pmo.seguridad.auditoria.preparar | tail -1 > ../../datos.json
+          cd ../..
+          python3 auditoria/ataques.py --base http://localhost:8080 --datos datos.json --salida ataques.json
+          docker compose -f instalacion/pc/docker-compose.yml exec -T backend bench --site frontend execute qsg_pmo.seguridad.auditoria.preparar | tail -1 > datos.json
+          python3 auditoria/simulacion.py --base http://localhost:8080 --datos datos.json --salida simulacion.json
+      - name: Registros si algo falla
+        if: failure()
+        run: docker compose logs --tail 200

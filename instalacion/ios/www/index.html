@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QSG Campo</title>
+<style>
+  :root { --bg: #f4f6f9; --fg: #14202e; --muted: #5b6b7f; --brand: #0b5cab; color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0f141b; --fg: #e7edf4; --muted: #9aa8b8; --brand: #4a9af0; } }
+  body { margin: 0; min-height: 100dvh; display: grid; place-items: center; background: var(--bg); color: var(--fg);
+         font: 16px/1.5 system-ui, sans-serif; padding: 24px; box-sizing: border-box; text-align: center; }
+  h1 { font-size: 22px; margin: 16px 0 8px; }
+  p { color: var(--muted); margin: 0 0 20px; }
+  code { color: var(--fg); }
+  button { font: inherit; font-weight: 600; background: var(--brand); color: #fff; border: 0; border-radius: 12px; padding: 14px 24px; }
+</style>
+</head>
+<body>
+  <main>
+    <svg width="72" height="72" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0b5cab"/><circle cx="256" cy="236" r="118" fill="none" stroke="#fff" stroke-width="40"/><path d="M318 300l86 86" stroke="#fff" stroke-width="44" stroke-linecap="round"/><circle cx="256" cy="236" r="34" fill="#ffb020"/></svg>
+    <h1>No hay conexión con el servidor</h1>
+    <p>La app busca QSG PMO en <code id="srv">el servidor configurado</code>.<br>Revise que el celular tenga señal o esté en la misma Wi-Fi que la PC, y que QSG PMO esté encendido.</p>
+    <button type="button" id="retry">Reintentar</button>
+  </main>
+  <script src="servidor.js"></script>
+  <script>
+    var s = window.QSG_SERVIDOR;
+    if (s) document.getElementById("srv").textContent = s;
+    document.getElementById("retry").onclick = function () { if (s) location.href = s + "/campo"; else location.reload(); };
+  </script>
+</body>
+</html>

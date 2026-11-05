@@ -1,0 +1,7 @@
+node_modules/
+ios/
+salida/
+capacitor.config.json
+www/servidor.js
+package-lock.json
+.servidor

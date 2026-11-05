@@ -1,0 +1,66 @@
+# Construye la app de iPhone "QSG Campo" en la nube (Mac de GitHub), sin una Mac propia.
+# GitHub → Actions → "App iPhone (iOS)" → Run workflow → escriba la dirección del servidor.
+# Resultado en "Artifacts": la app para el simulador de Xcode y un .ipa sin firma, listo para firmar
+# con la cuenta de Apple Developer de la empresa (TestFlight o Ad Hoc). Vea instalacion/ios/README.md.
+name: App iPhone (iOS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      servidor:
+        description: "Dirección de QSG PMO (ej. https://pmo.qsg.pr o http://192.168.1.50:8080)"
+        required: true
+        default: "https://pmo.qsg.pr"
+  push:
+    paths:
+      - "instalacion/ios/**"
+      - ".github/workflows/ios-app.yml"
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: instalacion/ios
+    env:
+      QSG_SERVIDOR: ${{ github.event.inputs.servidor || 'https://pmo.qsg.pr' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Configurar servidor
+        run: node preparar.mjs "$QSG_SERVIDOR"
+      - name: Crear proyecto iOS
+        run: |
+          npx cap add ios
+          npx cap sync ios
+          node preparar.mjs --ios
+      - name: Compilar para el simulador
+        run: |
+          cd ios/App
+          if [ -d App.xcworkspace ]; then T=(-workspace App.xcworkspace); else T=(-project App.xcodeproj); fi
+          xcodebuild "${T[@]}" -scheme App -configuration Release -sdk iphonesimulator \
+            -derivedDataPath build-sim CODE_SIGNING_ALLOWED=NO build | tail -20
+      - name: Compilar para iPhone (sin firma)
+        run: |
+          cd ios/App
+          if [ -d App.xcworkspace ]; then T=(-workspace App.xcworkspace); else T=(-project App.xcodeproj); fi
+          xcodebuild "${T[@]}" -scheme App -configuration Release -sdk iphoneos \
+            -derivedDataPath build-dev CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build | tail -20
+      - name: Empaquetar
+        run: |
+          mkdir -p salida/Payload
+          cp -R ios/App/build-sim/Build/Products/Release-iphonesimulator/App.app salida/QSG-Campo-simulador.app
+          cp -R ios/App/build-dev/Build/Products/Release-iphoneos/App.app salida/Payload/App.app
+          (cd salida && zip -qr QSG-Campo-sin-firma.ipa Payload && rm -rf Payload)
+          (cd salida && zip -qr QSG-Campo-simulador.zip QSG-Campo-simulador.app && rm -rf QSG-Campo-simulador.app)
+          printf 'Servidor: %s\nEl .ipa no está firmado: fírmelo con la cuenta de Apple Developer (README).\n' "$QSG_SERVIDOR" > salida/LEAME.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QSG-Campo-ios
+          path: instalacion/ios/salida/
+          retention-days: 30
