@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador de Despacho PR</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Mapa esquemático de Puerto Rico a la izquierda, comparación y operación del día a la derecha; pestañas de detalle abajo */
+:root {
+	--bg: #eef3f2;
+	--panel: #ffffff;
+	--ink: #13232a;
+	--muted: #5a6c72;
+	--line: #d3dedd;
+	--sea: #d7e8ec;
+	--land: #f7faf8;
+	--fiber: #0b7f88;
+	--copper: #b0601c;
+	--ok: #1f8a4c;
+	--warn: #b7791f;
+	--bad: #c0392b;
+	--display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+	--body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+	--mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		--bg: #0e1619; --panel: #152126; --ink: #e2ecea; --muted: #94a8ab; --line: #26363c;
+		--sea: #10242b; --land: #1b2c31; --fiber: #39c0c8; --copper: #e08c48; --ok: #4cc27c; --warn: #e2a64a; --bad: #ef6b5b;
+		color-scheme: dark;
+	}
+}
+:root[data-theme="dark"] {
+	--bg: #0e1619; --panel: #152126; --ink: #e2ecea; --muted: #94a8ab; --line: #26363c;
+	--sea: #10242b; --land: #1b2c31; --fiber: #39c0c8; --copper: #e08c48; --ok: #4cc27c; --warn: #e2a64a; --bad: #ef6b5b;
+	color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; display: grid; gap: 16px; }
+header h1 { font: 800 clamp(26px, 4vw, 40px)/1.05 var(--display); font-stretch: 85%; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+.eyebrow { font: 600 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fiber); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.controls label { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.controls input[type="range"] { width: 110px; accent-color: var(--fiber); }
+.controls .num { font: 600 13px var(--mono); min-width: 2.2em; display: inline-block; text-align: right; }
+button { font: 600 14px var(--body); border-radius: 7px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 7px 12px; cursor: pointer; }
+button:hover { border-color: var(--fiber); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--fiber); outline-offset: 2px; }
+button.primary { background: var(--fiber); border-color: var(--fiber); color: var(--panel); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+.card h2 { font: 700 17px var(--display); font-stretch: 90%; margin: 0 0 8px; }
+#map { width: 100%; height: auto; display: block; border-radius: 8px; background: var(--sea); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.clock { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.clock input { flex: 1; min-width: 160px; accent-color: var(--fiber); }
+.clock .t { font: 600 20px var(--mono); min-width: 4.2ch; }
+table.cmp { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.cmp th { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); text-align: right; padding: 4px 6px; }
+table.cmp th:first-child, table.cmp td:first-child { text-align: left; }
+table.cmp td { padding: 7px 6px; border-top: 1px solid var(--line); text-align: right; font-family: var(--mono); font-size: 14px; }
+table.cmp td:first-child { font-family: var(--body); font-size: 14px; }
+.better { color: var(--ok); font-weight: 600; }
+.worse { color: var(--bad); font-weight: 600; }
+.note { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+.feed { display: grid; gap: 8px; max-height: 340px; overflow-y: auto; }
+.item { border: 1px solid var(--line); border-left: 4px solid var(--muted); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+.item.alta { border-left-color: var(--bad); }
+.item.media { border-left-color: var(--warn); }
+.item.ok { border-left-color: var(--ok); }
+.item b { font-family: var(--mono); font-size: 13px; }
+.item .when { font: 12px var(--mono); color: var(--muted); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.scroll { overflow-x: auto; }
+table.data { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+table.data th { text-align: left; font: 600 12px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.data td { padding: 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.bar { height: 10px; background: var(--sea); border-radius: 5px; position: relative; min-width: 120px; }
+.bar span { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--fiber); }
+.bar span.over { background: var(--bad); }
+.pill { display: inline-block; font: 600 11.5px var(--mono); padding: 2px 7px; border-radius: 999px; border: 1px solid currentColor; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); }
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.how div { min-width: 0; }
+.how h3 { font: 700 15px var(--display); margin: 0 0 4px; }
+.how p { margin: 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 920px) { .grid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+	<header>
+		<div class="eyebrow">QSG PMO · Liberty Puerto Rico · simulación</div>
+		<h1>Un día de despacho en Puerto Rico</h1>
+		<p>Órdenes FTTH y HFC, residenciales y empresariales, repartidas por la isla. Compare el plan del motor por reglas con el plan optimizado, reproduzca el día y vea cómo el seguimiento GPS genera alertas y sugiere la mejor cuadrilla. Los datos son de ejemplo; los algoritmos son los de la app.</p>
+	</header>
+
+	<section class="controls" aria-label="Escenario">
+		<label for="nOrd">Órdenes <input id="nOrd" type="range" min="20" max="80" value="48"><span class="num" id="nOrdV">48</span></label>
+		<label for="nCrew">Cuadrillas <input id="nCrew" type="range" min="6" max="14" value="10"><span class="num" id="nCrewV">10</span></label>
+		<label><input id="terreno" type="checkbox" checked> Terreno montañoso y lancha</label>
+		<label for="apagon">Apagón LUMA en <select id="apagon"><option value="">ninguna zona</option><option>Metro</option><option>Este</option><option>Norte</option><option>Sur</option><option>Oeste</option><option>Centro</option></select></label>
+		<button id="nuevo" class="primary">Nuevo día</button>
+		<span class="note" id="semilla"></span>
+	</section>
+
+	<div class="grid">
+		<div class="card">
+			<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+				<h2>Rutas del día</h2>
+				<div class="seg" role="group" aria-label="Plan en el mapa">
+					<button id="verReglas" aria-pressed="false">Motor por reglas</button>
+					<button id="verOpt" aria-pressed="true">Optimizado</button>
+				</div>
+			</div>
+			<svg id="map" role="img" aria-label="Mapa esquemático de Puerto Rico con rutas de las cuadrillas"></svg>
+			<div class="legend">
+				<span><i style="background:var(--fiber)"></i>FTTH</span>
+				<span><i style="background:var(--copper)"></i>HFC</span>
+				<span><i style="background:transparent;border:2px solid var(--ink);border-radius:2px"></i>Empresarial</span>
+				<span><i style="background:var(--ok)"></i>Completada</span>
+				<span><i style="background:var(--bad)"></i>Sin asignar</span>
+				<span>Mapa esquemático, no a escala de navegación</span>
+			</div>
+			<div class="clock">
+				<button id="play" aria-label="Reproducir el día">▶ Reproducir</button>
+				<input id="hora" type="range" min="420" max="1080" value="420" step="5" aria-label="Hora del día">
+				<span class="t" id="horaV">07:00</span>
+			</div>
+		</div>
+
+		<div style="display:grid;gap:16px;min-width:0">
+			<div class="card">
+				<h2>Plan por reglas contra optimizado</h2>
+				<table class="cmp" id="cmp"></table>
+				<p class="note" id="cmpNote"></p>
+			</div>
+			<div class="card">
+				<h2>Alertas y recomendaciones</h2>
+				<div class="feed" id="feed" aria-live="polite"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="card">
+		<div class="tabs" role="tablist">
+			<button role="tab" aria-selected="true" data-tab="zonas">Zonas</button>
+			<button role="tab" aria-selected="false" data-tab="materiales">Materiales</button>
+			<button role="tab" aria-selected="false" data-tab="rutas">Rutas</button>
+			<button role="tab" aria-selected="false" data-tab="sin">Sin asignar</button>
+		</div>
+		<div id="tab"></div>
+	</div>
+
+	<div class="card how">
+		<div><h3>Motor por reglas</h3><p>El de la app desde v0.1: toma las órdenes por urgencia y le da cada una a la cuadrilla más barata en ese momento, con la misma velocidad en toda la isla.</p></div>
+		<div><h3>Optimizado</h3><p>Parte de ese plan y de una inserción, y prueba reubicar, intercambiar e invertir tramos de ruta con el terreno real. Nunca entrega un plan peor que el de reglas.</p></div>
+		<div><h3>Puerto Rico</h3><p>La cordillera se maneja al 65 % de la velocidad, Vieques y Culebra solo con la cuadrilla habilitada para la lancha, y una zona con apagón no recibe trabajo.</p></div>
+		<div><h3>Durante el día</h3><p>El GPS de la app compara la posición con la agenda. Si una cuadrilla no llega a la ventana, propone la cuadrilla que llega antes desde donde está.</p></div>
+	</div>
+</div>
+
+<script>
+const MUNI=[["Adjuntas",18.1627,-66.7224,"M","Centro"],["Aguada",18.3794,-67.1882,"L","Oeste"],["Aguadilla",18.4275,-67.1541,"L","Oeste"],["Aguas Buenas",18.2569,-66.103,"M","Este"],["Aibonito",18.14,-66.266,"M","Centro"],["Añasco",18.2827,-67.1396,"L","Oeste"],["Arecibo",18.4725,-66.7157,"L","Norte"],["Arroyo",17.9658,-66.0613,"L","Sur"],["Barceloneta",18.4505,-66.5385,"L","Norte"],["Barranquitas",18.1866,-66.3063,"M","Centro"],["Bayamón",18.3989,-66.1557,"L","Metro"],["Cabo Rojo",18.0866,-67.1457,"L","Oeste"],["Caguas",18.2341,-66.0485,"L","Este"],["Camuy",18.4838,-66.8449,"L","Norte"],["Canóvanas",18.3791,-65.9013,"L","Este"],["Carolina",18.3808,-65.9574,"L","Metro"],["Cataño",18.4413,-66.118,"L","Metro"],["Cayey",18.1119,-66.166,"M","Centro"],["Ceiba",18.2641,-65.6485,"L","Este"],["Ciales",18.3361,-66.4688,"M","Centro"],["Cidra",18.1758,-66.1613,"M","Centro"],["Coamo",18.0799,-66.358,"L","Sur"],["Comerío",18.2192,-66.2257,"M","Centro"],["Corozal",18.3411,-66.317,"M","Centro"],["Culebra",18.303,-65.301,"I","Islas"],["Dorado",18.4588,-66.2677,"L","Norte"],["Fajardo",18.3258,-65.6524,"L","Este"],["Florida",18.3625,-66.5616,"L","Norte"],["Guánica",17.9716,-66.908,"L","Sur"],["Guayama",17.9841,-66.1138,"L","Sur"],["Guayanilla",18.0191,-66.7918,"L","Sur"],["Guaynabo",18.3575,-66.111,"L","Metro"],["Gurabo",18.2544,-65.973,"L","Este"],["Hatillo",18.4863,-66.8254,"L","Norte"],["Hormigueros",18.1396,-67.1274,"L","Oeste"],["Humacao",18.1497,-65.8274,"L","Este"],["Isabela",18.5005,-67.0243,"L","Oeste"],["Jayuya",18.2186,-66.5916,"M","Centro"],["Juana Díaz",18.0525,-66.5066,"L","Sur"],["Juncos",18.2275,-65.921,"L","Este"],["Lajas",18.0497,-67.0593,"L","Oeste"],["Lares",18.295,-66.8782,"M","Centro"],["Las Marías",18.2517,-66.9921,"M","Oeste"],["Las Piedras",18.183,-65.8663,"L","Este"],["Loíza",18.4313,-65.8802,"L","Este"],["Luquillo",18.3725,-65.7166,"L","Este"],["Manatí",18.4277,-66.4922,"L","Norte"],["Maricao",18.1808,-66.9799,"M","Oeste"],["Maunabo",18.0072,-65.8993,"L","Este"],["Mayagüez",18.2013,-67.1397,"L","Oeste"],["Moca",18.3947,-67.1132,"L","Oeste"],["Morovis",18.3258,-66.4066,"M","Norte"],["Naguabo",18.2116,-65.7349,"L","Este"],["Naranjito",18.3008,-66.2449,"M","Centro"],["Orocovis",18.2269,-66.3913,"M","Centro"],["Patillas",18.0063,-66.0157,"L","Sur"],["Peñuelas",18.0563,-66.7216,"L","Sur"],["Ponce",18.0111,-66.6141,"L","Sur"],["Quebradillas",18.4738,-66.9385,"L","Norte"],["Rincón",18.3402,-67.2499,"L","Oeste"],["Río Grande",18.3802,-65.8313,"L","Este"],["Sabana Grande",18.0777,-66.9604,"L","Oeste"],["Salinas",17.9775,-66.2979,"L","Sur"],["San Germán",18.0807,-67.0411,"L","Oeste"],["San Juan",18.4655,-66.1057,"L","Metro"],["San Lorenzo",18.1897,-65.961,"M","Este"],["San Sebastián",18.3366,-66.9902,"M","Oeste"],["Santa Isabel",17.9661,-66.4049,"L","Sur"],["Toa Alta",18.3883,-66.2482,"L","Norte"],["Toa Baja",18.444,-66.2546,"L","Norte"],["Trujillo Alto",18.3547,-66.0074,"L","Metro"],["Utuado",18.2655,-66.7005,"M","Centro"],["Vega Alta",18.4122,-66.3313,"L","Norte"],["Vega Baja",18.4444,-66.3874,"L","Norte"],["Vieques",18.1263,-65.4401,"I","Islas"],["Villalba",18.1272,-66.4922,"M","Sur"],["Yabucoa",18.0505,-65.8793,"L","Este"],["Yauco",18.035,-66.8499,"L","Sur"]];
+(() => {
+	// ------------------------------------------------------------------ datos base
+	const M = MUNI.map(([n, lat, lng, t, z]) => ({ n, lat, lng, t, z }));
+	const BY = Object.fromEntries(M.map((m) => [m.n, m]));
+	const ZONAS = ["Metro", "Este", "Norte", "Sur", "Oeste", "Centro", "Islas"];
+	const VECINAS = { Metro: ["Este", "Norte", "Centro"], Este: ["Metro", "Centro", "Sur", "Islas"], Norte: ["Metro", "Centro", "Oeste"], Oeste: ["Norte", "Centro", "Sur"], Sur: ["Este", "Centro", "Oeste"], Centro: ["Metro", "Este", "Norte", "Oeste", "Sur"], Islas: ["Este"] };
+	const PESO_ZONA = { Metro: 0.32, Este: 0.16, Norte: 0.14, Sur: 0.14, Oeste: 0.13, Centro: 0.09, Islas: 0.02 };
+	const TIPOS = [
+		["FTTH-INST-RES", "FTTH", "Residencial", "Instalación", 120, ["FTTH-RES"], 0.27],
+		["FTTH-REP-RES", "FTTH", "Residencial", "Reparación", 90, ["FTTH-RES"], 0.12],
+		["FTTH-RECON", "FTTH", "Residencial", "Reconectorización", 60, ["FTTH-RES", "RECONECT"], 0.12],
+		["HFC-INST-RES", "HFC", "Residencial", "Instalación", 90, ["HFC-RES"], 0.14],
+		["HFC-REP-RES", "HFC", "Residencial", "Reparación", 75, ["HFC-RES"], 0.1],
+		["HFC-RECON", "HFC", "Residencial", "Reconectorización", 45, ["HFC-RES", "RECONECT"], 0.08],
+		["FTTH-INST-EMP", "FTTH", "Empresarial", "Instalación", 180, ["FTTH-EMP"], 0.07],
+		["FTTH-REP-EMP", "FTTH", "Empresarial", "Reparación", 120, ["FTTH-EMP"], 0.05],
+		["HFC-REP-EMP", "HFC", "Empresarial", "Reparación", 120, ["HFC-EMP"], 0.05],
+	];
+	const KITS = {
+		"FTTH-INST-RES": { "DROP-FO-50M": 1, ONT: 1, "CONECTOR-SC": 2, ROSETA: 1 },
+		"FTTH-INST-EMP": { "DROP-FO-50M": 1, ONT: 1, "CONECTOR-SC": 4, ROSETA: 1 },
+		"FTTH-REP-RES": { "CONECTOR-SC": 2 },
+		"FTTH-REP-EMP": { "CONECTOR-SC": 2, ONT: 1 },
+		"FTTH-RECON": { "CONECTOR-SC": 2 },
+		"HFC-INST-RES": { "COAX-RG6-30M": 1, MODEM: 1, "CONECTOR-F": 4 },
+		"HFC-REP-RES": { "CONECTOR-F": 2 },
+		"HFC-REP-EMP": { "CONECTOR-F": 2, MODEM: 1 },
+		"HFC-RECON": { "CONECTOR-F": 4 },
+	};
+	const SERIAL = new Set(["ONT", "MODEM"]);
+	const CREWS = [
+		["CUA-SJ-01", "San Juan", ["FTTH-RES", "FTTH-EMP", "RECONECT"], "Fibra Boricua LLC"],
+		["CUA-CAG-01", "Caguas", ["FTTH-RES", "RECONECT"], "Fibra Boricua LLC"],
+		["CUA-PON-01", "Ponce", ["FTTH-RES", "FTTH-EMP", "RECONECT"], "Conecta Sur"],
+		["CUA-MAY-01", "Mayagüez", ["FTTH-RES", "HFC-RES", "RECONECT"], "Conecta Sur"],
+		["CUA-ARE-01", "Arecibo", ["FTTH-RES", "HFC-RES", "RECONECT"], "Fibra Boricua LLC"],
+		["CUA-HUM-01", "Humacao", ["HFC-RES", "HFC-EMP", "RECONECT"], "Cable Este Services"],
+		["CUA-BAY-01", "Bayamón", ["HFC-RES", "RECONECT"], "Cable Este Services"],
+		["CUA-CAY-01", "Cayey", ["FTTH-RES", "HFC-RES"], "Conecta Sur"],
+		["CUA-CAR-01", "Carolina", ["FTTH-RES", "HFC-RES", "RECONECT"], "Cable Este Services"],
+		["CUA-AGU-01", "Aguadilla", ["FTTH-RES", "HFC-EMP", "RECONECT"], "Conecta Sur"],
+		["CUA-CEI-01", "Ceiba", ["FTTH-RES", "HFC-RES", "RECONECT"], "Cable Este Services", true],
+		["CUA-SJ-02", "Guaynabo", ["HFC-RES", "HFC-EMP", "RECONECT"], "Cable Este Services"],
+		["CUA-PON-02", "Juana Díaz", ["HFC-RES", "RECONECT"], "Conecta Sur"],
+		["CUA-UTU-01", "Utuado", ["FTTH-RES", "RECONECT"], "Fibra Boricua LLC"],
+	];
+	const PR_COSTA = [[-67.16,18.51],[-66.95,18.49],[-66.70,18.48],[-66.45,18.48],[-66.20,18.47],[-66.05,18.47],[-65.90,18.45],[-65.70,18.38],[-65.62,18.33],[-65.62,18.22],[-65.73,18.12],[-65.80,18.05],[-65.88,17.98],[-66.02,17.97],[-66.15,17.94],[-66.35,17.95],[-66.50,17.97],[-66.62,17.98],[-66.80,17.98],[-66.92,17.94],[-67.10,17.95],[-67.20,17.96],[-67.19,18.07],[-67.20,18.20],[-67.26,18.36]];
+	const VIEQUES = [[-65.58,18.15],[-65.45,18.16],[-65.30,18.15],[-65.27,18.11],[-65.42,18.09],[-65.57,18.10]];
+	const CULEBRA = [[-65.34,18.33],[-65.26,18.34],[-65.22,18.30],[-65.29,18.28],[-65.33,18.30]];
+
+	// ------------------------------------------------------------------ utilidades
+	// Generador reproducible (mulberry32): el mismo número de escenario da el mismo día
+	const rnd = (seed) => () => {
+		seed = (seed + 0x6d2b79f5) | 0;
+		let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+	const hav = (a, b) => {
+		const r = 6371, p1 = (a.lat * Math.PI) / 180, p2 = (b.lat * Math.PI) / 180;
+		const dp = p2 - p1, dl = ((b.lng - a.lng) * Math.PI) / 180;
+		const x = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+		return 2 * r * Math.asin(Math.sqrt(x));
+	};
+	const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(Math.round(m % 60)).padStart(2, "0")}`;
+	const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+	const PRIO = { Crítica: 0, Alta: 1, Normal: 2, Baja: 3 };
+	const S = { velocidad: 35, vial: 1.4, montana: 0.65, ferry: 150, atraso: 0.5, carga: 10, zona: 15, b2b: 2 };
+
+	// Viaje en minutos y km. «realista» aplica cordillera y lancha (como inteligencia/rutas.py)
+	function viaje(a, b, realista) {
+		const km = hav(a, b) * S.vial;
+		let v = S.velocidad;
+		const cruza = (a.t === "I") !== (b.t === "I");
+		if (realista && (a.t === "M" || b.t === "M")) v *= S.montana;
+		return { min: (km / v) * 60 + (realista && cruza ? S.ferry : 0), km };
+	}
+
+	// ------------------------------------------------------------------ escenario
+	function escenario(seed, nOrd, nCrew, apagon) {
+		const r = rnd(seed);
+		const elegir = (pares) => {
+			let x = r() * pares.reduce((s, p) => s + p[1], 0);
+			for (const [v, w] of pares) if ((x -= w) <= 0) return v;
+			return pares[pares.length - 1][0];
+		};
+		const ordenes = [];
+		for (let i = 0; i < nOrd; i++) {
+			const zona = elegir(Object.entries(PESO_ZONA));
+			const opciones = M.filter((m) => m.z === zona);
+			const m = opciones[Math.floor(r() * opciones.length)];
+			const tipo = elegir(TIPOS.map((t) => [t, t[6]]));
+			const emp = tipo[2] === "Empresarial";
+			const v = emp ? (r() < 0.7 ? [480, 1020] : [480, 720]) : elegir([[[480, 720], 0.45], [[720, 1020], 0.35], [[480, 1020], 0.2]]);
+			let prio = "Normal";
+			if (emp && tipo[3] === "Reparación") prio = "Alta";
+			else if (r() < 0.07) prio = "Alta";
+			if (r() < 0.02) prio = "Crítica";
+			ordenes.push({
+				id: `ORD-${String(1001 + i)}`,
+				muni: m.n, zona, t: m.t,
+				lat: m.lat + (r() - 0.5) * 0.024, lng: m.lng + (r() - 0.5) * 0.024,
+				tipo: tipo[0], tec: tipo[1], seg: tipo[2], cat: tipo[3], dur: tipo[4], skills: tipo[5],
+				ws: v[0], we: v[1], prio,
+				bloqueo: apagon && zona === apagon ? "Apagón LUMA" : null,
+			});
+		}
+		const cuadrillas = CREWS.slice(0, nCrew).map(([id, base, skills, contratista, islas], k) => {
+			const m = BY[base];
+			const camion = {};
+			for (const item of ["DROP-FO-50M", "ONT", "CONECTOR-SC", "ROSETA", "COAX-RG6-30M", "MODEM", "CONECTOR-F"]) camion[item] = Math.floor(r() * (SERIAL.has(item) ? 5 : 9));
+			return { id, base, lat: m.lat, lng: m.lng, t: m.t, zona: m.z, skills, contratista, islas: !!islas, ini: 420, fin: 1020, max: 6, color: `hsl(${(k * 47 + 190) % 360} 62% 47%)`, camion };
+		});
+		return { ordenes, cuadrillas };
+	}
+
+	const elegible = (o, c) => o.skills.every((s) => c.skills.includes(s)) && (o.t !== "I" || c.islas || c.zona === "Islas");
+
+	// ------------------------------------------------------------------ motor por reglas (assignment/engine.py)
+	function motorReglas(ordenes, cuadrillas) {
+		const estado = Object.fromEntries(cuadrillas.map((c) => [c.id, { pos: c, libre: c.ini, n: 0 }]));
+		const rutas = Object.fromEntries(cuadrillas.map((c) => [c.id, []]));
+		const orden = [...ordenes].sort((a, b) => PRIO[a.prio] - PRIO[b.prio] || a.we - b.we || a.ws - b.ws || a.id.localeCompare(b.id));
+		for (const o of orden) {
+			if (o.bloqueo) continue;
+			let mejor = null;
+			for (const c of cuadrillas) {
+				if (!o.skills.every((s) => c.skills.includes(s))) continue;
+				const e = estado[c.id];
+				if (e.n >= c.max) continue;
+				const v = viaje(e.pos, o, false); // el motor original no conoce el terreno
+				const inicio = Math.max(e.libre + v.min, o.ws);
+				if (inicio > o.we || inicio + o.dur > c.fin) continue;
+				const costo = v.min + (inicio - o.ws) * S.atraso + e.n * S.carga - (o.zona === c.zona ? S.zona : 0);
+				if (!mejor || costo < mejor.costo) mejor = { costo, c, inicio };
+			}
+			if (mejor) {
+				const e = estado[mejor.c.id];
+				e.n++; e.libre = mejor.inicio + o.dur; e.pos = o;
+				rutas[mejor.c.id].push(o);
+			}
+		}
+		return rutas;
+	}
+
+	// ------------------------------------------------------------------ optimizador (inteligencia/optimizacion.py)
+	function crearPlanificador(cuadrillas, realista) {
+		const crew = Object.fromEntries(cuadrillas.map((c) => [c.id, c]));
+		function evaluar(c, ruta) {
+			if (ruta.length > c.max) return null;
+			let t = c.ini, pos = c, costo = S.carga * (ruta.length * (ruta.length - 1)) / 2;
+			const detalle = [];
+			for (const o of ruta) {
+				const v = viaje(pos, o, realista);
+				const llegada = t + v.min;
+				const inicio = Math.max(llegada, o.ws);
+				if (inicio > o.we) return null;
+				const fin = inicio + o.dur;
+				if (fin > c.fin) return null;
+				const atraso = inicio - o.ws;
+				costo += v.min + atraso * S.atraso * (o.seg === "Empresarial" ? S.b2b : 1) - (o.zona === c.zona ? S.zona : 0);
+				detalle.push({ o, salida: t, llegada, inicio, fin, km: v.km, min: v.min, atraso });
+				t = fin; pos = o;
+			}
+			return { costo, detalle };
+		}
+		const costoRuta = (id, ruta) => (ruta.length ? evaluar(crew[id], ruta)?.costo ?? Infinity : 0);
+		const total = (rutas, sin) => Object.entries(rutas).reduce((s, [id, r]) => s + costoRuta(id, r), 0) + sin.reduce((s, o) => s + 100000 * (4 - PRIO[o.prio]), 0);
+		function mejorInsercion(o, rutas) {
+			let mejor = null;
+			for (const c of cuadrillas) {
+				if (!elegible(o, c)) continue;
+				const ruta = rutas[c.id];
+				if (ruta.length >= c.max) continue;
+				const base = costoRuta(c.id, ruta);
+				for (let i = 0; i <= ruta.length; i++) {
+					const e = evaluar(c, [...ruta.slice(0, i), o, ...ruta.slice(i)]);
+					if (e && (!mejor || e.costo - base < mejor.d)) mejor = { d: e.costo - base, id: c.id, i };
+				}
+			}
+			return mejor;
+		}
+		function reparar(rutas) {
+			const fuera = [];
+			for (const [id, ruta] of Object.entries(rutas)) {
+				while (ruta.length && !evaluar(crew[id], ruta)) {
+					for (let k = 1; k <= ruta.length; k++) if (!evaluar(crew[id], ruta.slice(0, k))) { fuera.push(ruta.splice(k - 1, 1)[0]); break; }
+				}
+			}
+			return fuera;
+		}
+		function construir(ordenes) {
+			const rutas = Object.fromEntries(cuadrillas.map((c) => [c.id, []]));
+			const sin = [];
+			for (const o of [...ordenes].sort((a, b) => PRIO[a.prio] - PRIO[b.prio] || a.we - b.we || a.ws - b.ws)) {
+				const m = mejorInsercion(o, rutas);
+				if (m) rutas[m.id].splice(m.i, 0, o); else sin.push(o);
+			}
+			return { rutas, sin };
+		}
+		function mejorar(rutas, sin, limite) {
+			let rondas = 0, cambio = true;
+			while (cambio && performance.now() < limite && rondas < 40) {
+				cambio = false; rondas++;
+				for (const o of [...sin]) { const m = mejorInsercion(o, rutas); if (m) { rutas[m.id].splice(m.i, 0, o); sin.splice(sin.indexOf(o), 1); cambio = true; } }
+				for (const a of cuadrillas) {
+					for (let i = 0; i < rutas[a.id].length && performance.now() < limite; i++) {
+						const o = rutas[a.id][i];
+						const resto = rutas[a.id].filter((_, k) => k !== i);
+						const ahorro = costoRuta(a.id, rutas[a.id]) - costoRuta(a.id, resto);
+						let mejor = null;
+						for (const b of cuadrillas) {
+							if (!elegible(o, b)) continue;
+							const ruta = b.id === a.id ? resto : rutas[b.id];
+							if (b.id !== a.id && ruta.length >= b.max) continue;
+							const base = costoRuta(b.id, ruta);
+							for (let k = 0; k <= ruta.length; k++) {
+								if (b.id === a.id && k === i) continue;
+								const e = evaluar(b, [...ruta.slice(0, k), o, ...ruta.slice(k)]);
+								const d = e ? e.costo - base - ahorro : Infinity;
+								if (d < -1e-6 && (!mejor || d < mejor.d)) mejor = { d, id: b.id, k };
+							}
+						}
+						if (mejor) { rutas[a.id] = resto; rutas[mejor.id].splice(mejor.k, 0, o); cambio = true; i--; }
+					}
+				}
+				for (const c of cuadrillas) {
+					const r = rutas[c.id];
+					for (let i = 0; i < r.length - 1; i++) for (let k = i + 1; k < r.length; k++) {
+						const nueva = [...r.slice(0, i), ...r.slice(i, k + 1).reverse(), ...r.slice(k + 1)];
+						if (costoRuta(c.id, nueva) < costoRuta(c.id, r) - 1e-6) { rutas[c.id] = nueva; cambio = true; break; }
+					}
+				}
+			}
+		}
+		return { evaluar, total, reparar, construir, mejorar, crew };
+	}
+
+	function planificar(esc, realista) {
+		const P = crearPlanificador(esc.cuadrillas, realista);
+		const activas = esc.ordenes.filter((o) => !o.bloqueo);
+		// Plan por reglas, evaluado con el modelo realista: lo que no cabe se cae
+		const reglas = motorReglas(activas, esc.cuadrillas);
+		const asign = new Set(Object.values(reglas).flat().map((o) => o.id));
+		const sinReglas = [...activas.filter((o) => !asign.has(o.id)), ...P.reparar(reglas)];
+		const limite = performance.now() + 450;
+		const a = { rutas: Object.fromEntries(Object.entries(reglas).map(([k, v]) => [k, [...v]])), sin: [...sinReglas] };
+		P.mejorar(a.rutas, a.sin, performance.now() + 220);
+		const b = P.construir(activas);
+		P.mejorar(b.rutas, b.sin, limite);
+		let opt = P.total(b.rutas, b.sin) < P.total(a.rutas, a.sin) ? b : a;
+		if (P.total(opt.rutas, opt.sin) >= P.total(reglas, sinReglas)) opt = { rutas: reglas, sin: sinReglas };
+		const bloqueadas = esc.ordenes.filter((o) => o.bloqueo);
+		return {
+			reglas: resumen(P, reglas, [...sinReglas, ...bloqueadas], esc),
+			opt: resumen(P, opt.rutas, [...opt.sin, ...bloqueadas], esc),
+		};
+	}
+
+	function resumen(P, rutas, sin, esc) {
+		const agenda = {};
+		let km = 0, min = 0, atraso = 0, servicio = 0, n = 0, b2b = 0, b2bTotal = esc.ordenes.filter((o) => o.seg === "Empresarial" && !o.bloqueo).length;
+		for (const c of esc.cuadrillas) {
+			const e = rutas[c.id]?.length ? P.evaluar(c, rutas[c.id]) : { detalle: [] };
+			agenda[c.id] = e.detalle;
+			for (const d of e.detalle) {
+				km += d.km; min += d.min; atraso += d.atraso; servicio += d.o.dur; n++;
+				if (d.o.seg === "Empresarial" && d.inicio <= d.o.ws + 60) b2b++;
+			}
+		}
+		return { agenda, sin, km, min, atraso, servicio, n, b2b, b2bTotal };
+	}
+
+	function motivo(o, esc, plan) {
+		if (o.bloqueo) return `Zona con incidencia: ${o.bloqueo}`;
+		const conHab = esc.cuadrillas.filter((c) => o.skills.every((s) => c.skills.includes(s)));
+		if (!conHab.length) return "Ninguna cuadrilla tiene la habilidad";
+		if (o.t === "I" && !conHab.some((c) => elegible(o, c))) return "Vieques/Culebra: sin cuadrilla habilitada para la lancha";
+		if (conHab.every((c) => (plan.agenda[c.id] || []).length >= c.max)) return "Cuadrillas con la habilidad a capacidad";
+		return "Nadie llega dentro de la ventana o del turno";
+	}
+
+	// ------------------------------------------------------------------ estado de la página
+	const $ = (id) => document.getElementById(id);
+	const ST = { seed: 2026, esc: null, plan: null, ver: "opt", hora: 420, tab: "zonas", play: null, incidente: null };
+
+	function generar() {
+		const nOrd = +$("nOrd").value, nCrew = +$("nCrew").value;
+		ST.esc = escenario(ST.seed, nOrd, nCrew, $("apagon").value);
+		ST.plan = planificar(ST.esc, $("terreno").checked);
+		// Un imprevisto: la segunda parada de una cuadrilla se alarga 75 minutos
+		const conRuta = ST.esc.cuadrillas.filter((c) => (ST.plan.opt.agenda[c.id] || []).length >= 3);
+		ST.incidente = conRuta.length ? { crew: conRuta[ST.seed % conRuta.length].id, parada: 1, extra: 75 } : null;
+		ST.sinSenal = ST.esc.cuadrillas[(ST.seed + 3) % ST.esc.cuadrillas.length].id;
+		$("semilla").textContent = `Escenario #${ST.seed}`;
+		pintarComparacion();
+		pintarTab();
+		pintarMapa();
+		pintarFeed();
+	}
+
+	// ------------------------------------------------------------------ comparación
+	function pintarComparacion() {
+		const r = ST.plan.reglas, o = ST.plan.opt;
+		const filas = [
+			["Órdenes asignadas", r.n, o.n, "mas", (v) => v],
+			["Sin asignar", r.sin.length, o.sin.length, "menos", (v) => v],
+			["Km de manejo", r.km, o.km, "menos", (v) => v.toFixed(0)],
+			["Km por orden", r.n ? r.km / r.n : 0, o.n ? o.km / o.n : 0, "menos", (v) => v.toFixed(1)],
+			["Horas de manejo", r.min / 60, o.min / 60, "menos", (v) => v.toFixed(1)],
+			["Horas de servicio programadas", r.servicio / 60, o.servicio / 60, "mas", (v) => v.toFixed(1)],
+			["Empresariales a tiempo", `${r.b2b}/${r.b2bTotal}`, `${o.b2b}/${o.b2bTotal}`, "mas", (v) => v],
+		];
+		$("cmp").innerHTML = `<tr><th></th><th>Reglas</th><th>Optimizado</th></tr>` + filas.map(([l, a, b, dir, f]) => {
+			const na = typeof a === "number" ? a : parseFloat(a), nb = typeof b === "number" ? b : parseFloat(b);
+			const mejor = dir === "mas" ? nb > na : nb < na, peor = dir === "mas" ? nb < na : nb > na;
+			return `<tr><td>${l}</td><td>${f(a)}</td><td class="${Math.abs(nb - na) > 1e-9 ? (mejor ? "better" : peor ? "worse" : "") : ""}">${f(b)}</td></tr>`;
+		}).join("");
+		const realista = $("terreno").checked;
+		$("cmpNote").textContent = realista
+			? "Ambos planes se miden con el terreno real. El motor por reglas planifica con la misma velocidad en toda la isla, así que algunas de sus paradas en la cordillera no llegan a tiempo y se caen."
+			: "Sin terreno: todo se mide con la velocidad plana del motor original.";
+	}
+
+	// ------------------------------------------------------------------ mapa
+	const W = 980, H = 400, LNG0 = -67.32, LNG1 = -65.16, LAT0 = 17.86, LAT1 = 18.58;
+	const px = (lng) => ((lng - LNG0) / (LNG1 - LNG0)) * W;
+	const py = (lat) => ((LAT1 - lat) / (LAT1 - LAT0)) * H;
+	const poly = (pts) => pts.map(([lng, lat]) => `${px(lng).toFixed(1)},${py(lat).toFixed(1)}`).join(" ");
+
+	function posicion(c, agenda, t) {
+		let pos = { lat: c.lat, lng: c.lng }, estado = "En base";
+		for (const d of agenda) {
+			if (t < d.salida) break;
+			if (t < d.llegada) { const f = (t - d.salida) / Math.max(1, d.llegada - d.salida); const de = pos; pos = { lat: de.lat + (d.o.lat - de.lat) * f, lng: de.lng + (d.o.lng - de.lng) * f }; return { pos, estado: `En ruta a ${d.o.id}` }; }
+			pos = { lat: d.o.lat, lng: d.o.lng };
+			estado = t < d.fin ? `En sitio ${d.o.id}` : `Terminó ${d.o.id}`;
+		}
+		return { pos, estado };
+	}
+
+	function agendaConIncidente(c) {
+		const base = ST.plan[ST.ver].agenda[c.id] || [];
+		const inc = ST.incidente;
+		if (!inc || inc.crew !== c.id || ST.ver !== "opt") return base;
+		// La parada se alarga: todo lo siguiente se corre
+		let corrimiento = 0;
+		return base.map((d, i) => {
+			const nd = { ...d, salida: d.salida + corrimiento, llegada: d.llegada + corrimiento };
+			nd.inicio = Math.max(nd.llegada, d.o.ws);
+			nd.fin = nd.inicio + d.o.dur + (i === inc.parada ? inc.extra : 0);
+			corrimiento = nd.fin - d.fin;
+			return nd;
+		});
+	}
+
+	function pintarMapa() {
+		const svg = $("map");
+		svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+		const plan = ST.plan[ST.ver];
+		const t = ST.hora;
+		const completadas = new Set();
+		const partes = [
+			`<rect width="${W}" height="${H}" fill="var(--sea)"/>`,
+			`<polygon points="${poly(PR_COSTA)}" fill="var(--land)" stroke="var(--line)" stroke-width="1.5"/>`,
+			`<polygon points="${poly(VIEQUES)}" fill="var(--land)" stroke="var(--line)"/>`,
+			`<polygon points="${poly(CULEBRA)}" fill="var(--land)" stroke="var(--line)"/>`,
+		];
+		const apagon = $("apagon").value;
+		for (const z of ZONAS) {
+			const ms = M.filter((m) => m.z === z);
+			const cx = ms.reduce((s, m) => s + px(m.lng), 0) / ms.length, cy = ms.reduce((s, m) => s + py(m.lat), 0) / ms.length;
+			if (z === apagon) partes.push(`<circle cx="${cx}" cy="${cy}" r="62" fill="var(--bad)" fill-opacity="0.08" stroke="var(--bad)" stroke-dasharray="4 4"/>`);
+			partes.push(`<text x="${cx}" y="${cy - 34}" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="var(--muted)" letter-spacing="1">${z.toUpperCase()}${z === apagon ? " · APAGÓN" : ""}</text>`);
+		}
+		for (const c of ST.esc.cuadrillas) {
+			const ag = agendaConIncidente(c);
+			if (!ag.length) continue;
+			const pts = [[c.lng, c.lat], ...ag.map((d) => [d.o.lng, d.o.lat])];
+			partes.push(`<polyline points="${poly(pts)}" fill="none" stroke="${c.color}" stroke-width="2.2" stroke-opacity="0.85" stroke-linejoin="round"/>`);
+			for (const d of ag) if (t >= d.fin) completadas.add(d.o.id);
+		}
+		const sin = new Set(plan.sin.map((o) => o.id));
+		for (const o of ST.esc.ordenes) {
+			const x = px(o.lng), y = py(o.lat);
+			const color = completadas.has(o.id) ? "var(--ok)" : sin.has(o.id) ? "var(--bad)" : o.tec === "FTTH" ? "var(--fiber)" : "var(--copper)";
+			const titulo = `${o.id} · ${o.tipo} · ${o.muni} · ${hhmm(o.ws)}–${hhmm(o.we)}`;
+			partes.push(o.seg === "Empresarial"
+				? `<rect x="${x - 5}" y="${y - 5}" width="10" height="10" fill="${color}" stroke="var(--ink)" stroke-width="1.5"><title>${esc(titulo)}</title></rect>`
+				: `<circle cx="${x}" cy="${y}" r="4.6" fill="${color}" stroke="var(--panel)" stroke-width="1"><title>${esc(titulo)}</title></circle>`);
+		}
+		for (const c of ST.esc.cuadrillas) {
+			const { pos, estado } = posicion(c, agendaConIncidente(c), t);
+			const x = px(pos.lng), y = py(pos.lat);
+			partes.push(`<g><circle cx="${x}" cy="${y}" r="8" fill="${c.color}" stroke="var(--panel)" stroke-width="2"><title>${esc(c.id)} · ${esc(estado)}</title></circle><text x="${x + 10}" y="${y + 4}" font-family="var(--mono)" font-size="10.5" font-weight="600" fill="var(--ink)">${esc(c.id.replace("CUA-", ""))}</text></g>`);
+		}
+		svg.innerHTML = partes.join("");
+	}
+
+	// ------------------------------------------------------------------ alertas del día (tracking.py + zonas.mejor_cuadrilla)
+	function pintarFeed() {
+		const t = ST.hora, items = [];
+		const inc = ST.incidente;
+		if (ST.ver === "opt" && inc) {
+			const c = ST.esc.cuadrillas.find((x) => x.id === inc.crew);
+			const ag = agendaConIncidente(c), base = ST.plan.opt.agenda[c.id];
+			const d = ag[inc.parada], siguiente = ag[inc.parada + 1];
+			const aviso = base[inc.parada].fin + 30; // 30 min más de lo estimado en sitio
+			if (t >= aviso && siguiente) {
+				const llegaria = Math.max(t, d.fin) + (siguiente.llegada - siguiente.salida);
+				if (llegaria > siguiente.o.we) {
+					const alt = mejorCuadrilla(siguiente.o, t, c.id);
+					items.push({ cls: "alta", when: hhmm(aviso), html: `<b>${c.id}</b> lleva ${Math.round(t - base[inc.parada].fin)} min de más en ${d.o.id}. Llegaría a <b>${siguiente.o.id}</b> a las ${hhmm(llegaria)}, después de la ventana (${hhmm(siguiente.o.we)}).` + (alt ? `<br>Recomendación: reasignar a <b>${alt.id}</b>, llega a las ${hhmm(alt.llega)} (${alt.razon}).` : "<br>Ninguna otra cuadrilla llega a tiempo: avise al cliente.") });
+				} else {
+					items.push({ cls: "media", when: hhmm(aviso), html: `<b>${c.id}</b> lleva más tiempo del estimado en ${d.o.id}; todavía llega a ${siguiente.o.id} dentro de la ventana.` });
+				}
+			}
+		}
+		if (t >= 660 && t <= 700) items.push({ cls: "media", when: "11:00", html: `<b>${ST.sinSenal}</b> sin señal desde hace ${Math.round(t - 640)} min (cordillera o zona sin cobertura). Las lecturas se guardan en el teléfono y llegan al recuperar señal.` });
+		if (t > 700) items.push({ cls: "ok", when: "11:40", html: `<b>${ST.sinSenal}</b> recuperó la señal: llegaron las ubicaciones guardadas.` });
+		const sin = ST.plan[ST.ver].sin.filter((o) => !o.bloqueo).length;
+		const bloq = ST.esc.ordenes.filter((o) => o.bloqueo).length;
+		if (bloq) items.push({ cls: "alta", when: "07:00", html: `Apagón LUMA en <b>${$("apagon").value}</b>: ${bloq} órdenes no se programaron. Reprograme o avise a Liberty.` });
+		if (sin) items.push({ cls: "media", when: "07:00", html: `${sin} órdenes sin asignar en el plan ${ST.ver === "opt" ? "optimizado" : "por reglas"} (vea la pestaña «Sin asignar»).` });
+		const mat = materiales();
+		const faltan = Object.entries(mat).filter(([, p]) => Object.keys(p.recoger).length).length;
+		items.push({ cls: "", when: "06:30", html: `Bodega: ${faltan} cuadrillas deben recoger material antes de salir; ${Object.values(mat).filter((p) => Object.keys(p.devolver).length).length} tienen sobrante para devolver.` });
+		$("feed").innerHTML = items.length ? items.map((i) => `<div class="item ${i.cls}"><div class="when">${i.when}</div>${i.html}</div>`).join("") : '<div class="item ok">Sin alertas.</div>';
+	}
+
+	function mejorCuadrilla(o, t, excluir) {
+		let mejor = null;
+		for (const c of ST.esc.cuadrillas) {
+			if (c.id === excluir || !elegible(o, c)) continue;
+			const ag = ST.plan.opt.agenda[c.id] || [];
+			if (ag.length >= c.max) continue;
+			const { pos } = posicion(c, ag, t);
+			const ocupada = ag.find((d) => d.inicio <= t && t < d.fin);
+			const libre = Math.max(t, ocupada ? ocupada.fin : t);
+			const v = viaje({ ...pos, t: "L" }, o, $("terreno").checked);
+			const llega = Math.max(libre + v.min, o.ws);
+			if (llega > o.we || llega + o.dur > c.fin) continue;
+			const pendientes = ag.filter((d) => d.inicio > t).length;
+			const costo = v.min + pendientes * 15 - (c.zona === o.zona ? S.zona : 0);
+			if (!mejor || costo < mejor.costo) mejor = { id: c.id, llega, costo, razon: `${Math.round(v.min)} min de viaje desde donde está${c.zona === o.zona ? ", es de la zona" : ""}, ${c.max - ag.length} cupos libres` };
+		}
+		return mejor;
+	}
+
+	// ------------------------------------------------------------------ materiales (inteligencia/materiales.py)
+	function materiales() {
+		const salida = {};
+		for (const c of ST.esc.cuadrillas) {
+			const nec = {};
+			for (const d of ST.plan[ST.ver].agenda[c.id] || []) for (const [i, q] of Object.entries(KITS[d.o.tipo] || {})) nec[i] = (nec[i] || 0) + q;
+			const recoger = {}, devolver = {};
+			for (const item of new Set([...Object.keys(nec), ...Object.keys(c.camion)])) {
+				const n = nec[item] || 0, tiene = c.camion[item] || 0;
+				const objetivo = SERIAL.has(item) ? Math.ceil(n) + (n > 0 ? 1 : 0) : Math.ceil(n * 1.1);
+				if (tiene < objetivo) recoger[item] = objetivo - tiene;
+				else if (SERIAL.has(item) ? tiene > objetivo : tiene - objetivo > Math.max(objetivo * 0.5, 1)) devolver[item] = Math.floor(tiene - objetivo);
+			}
+			salida[c.id] = { nec, recoger, devolver };
+		}
+		return salida;
+	}
+
+	// ------------------------------------------------------------------ pestañas
+	function pintarTab() {
+		document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === ST.tab)));
+		const plan = ST.plan[ST.ver];
+		let html = "";
+		if (ST.tab === "zonas") {
+			const dem = {}, cap = {};
+			for (const o of ST.esc.ordenes) if (!o.bloqueo) dem[o.zona] = (dem[o.zona] || 0) + o.dur + 25;
+			for (const c of ST.esc.cuadrillas) cap[c.zona] = (cap[c.zona] || 0) + (c.fin - c.ini);
+			const movs = [];
+			const capF = { ...cap };
+			for (const z of ZONAS.filter((z) => (dem[z] || 0) > (capF[z] || 0)).sort((a, b) => (dem[b] - capF[b]) - (dem[a] - capF[a]))) {
+				for (const d of ZONAS.filter((d) => d !== z && capF[d] && (dem[d] || 0) / capF[d] < 0.6).sort((a, b) => (VECINAS[z].includes(a) ? 0 : 1) - (VECINAS[z].includes(b) ? 0 : 1))) {
+					const donante = ST.esc.cuadrillas.find((c) => c.zona === d && !movs.some((m) => m.c === c.id));
+					if (!donante || (dem[z] || 0) <= (capF[z] || 0)) continue;
+					if ((dem[d] || 0) / (capF[d] - 600) > 0.85) continue;
+					capF[d] -= 600; capF[z] = (capF[z] || 0) + 600;
+					movs.push({ c: donante.id, de: d, a: z, vecina: VECINAS[z].includes(d) });
+				}
+			}
+			html = `<div class="scroll"><table class="data"><tr><th>Zona</th><th>Demanda</th><th>Capacidad</th><th>Ocupación</th><th></th><th>Estado</th></tr>` +
+				ZONAS.filter((z) => dem[z] || cap[z]).map((z) => {
+					const oc = cap[z] ? (dem[z] || 0) / cap[z] : null;
+					const est = oc === null ? ["Sin cuadrillas", "bad"] : oc > 1 ? ["Déficit", "bad"] : oc >= 0.85 ? ["Ajustada", "warn"] : oc >= 0.6 ? ["Normal", "ok"] : ["Holgada", "ok"];
+					return `<tr><td>${z}</td><td>${Math.round((dem[z] || 0) / 60)} h</td><td>${Math.round((cap[z] || 0) / 60)} h</td><td>${oc === null ? "—" : Math.round(oc * 100) + " %"}</td><td><div class="bar"><span class="${oc > 1 ? "over" : ""}" style="width:${Math.min(100, (oc || 1) * 100)}%"></span></div></td><td><span class="pill ${est[1]}">${est[0]}</span></td></tr>`;
+				}).join("") + `</table></div>` +
+				(movs.length ? `<p><b>Recomendación:</b> ${movs.map((m) => `mover <b>${m.c}</b> de ${m.de} a ${m.a}${m.vecina ? " (zona vecina)" : ""}`).join("; ")}.</p>` : `<p class="note">Ninguna zona necesita cuadrillas de otra zona en este escenario.</p>`) +
+				`<p class="note">Demanda = duración de las órdenes más 25 min de viaje promedio. Capacidad = turno de las cuadrillas con base en la zona.</p>`;
+		} else if (ST.tab === "materiales") {
+			const mat = materiales();
+			const fmt = (o) => Object.entries(o).map(([i, q]) => `${q} ${i}`).join(", ") || "—";
+			html = `<div class="scroll"><table class="data"><tr><th>Cuadrilla</th><th>Necesita hoy</th><th>Recoger en bodega</th><th>Devolver</th></tr>` +
+				ST.esc.cuadrillas.map((c) => `<tr><td><b>${c.id}</b></td><td>${fmt(mat[c.id].nec)}</td><td>${fmt(mat[c.id].recoger)}</td><td>${fmt(mat[c.id].devolver)}</td></tr>`).join("") +
+				`</table></div><p class="note">Recoger = necesidad del día + 10 % de margen − lo que ya trae el camión. ONT y módems: lo del día más un repuesto; el resto vuelve a bodega. Antes, la solicitud pedía el kit completo sin mirar el camión.</p>`;
+		} else if (ST.tab === "rutas") {
+			html = `<div class="scroll"><table class="data"><tr><th>Cuadrilla</th><th>Contratista</th><th>Ruta</th><th>Km</th><th>Termina</th></tr>` +
+				ST.esc.cuadrillas.map((c) => {
+					const ag = plan.agenda[c.id] || [];
+					return `<tr><td><b style="color:${c.color}">${c.id}</b><br><span class="note">${c.base}${c.islas ? " · lancha" : ""}</span></td><td>${c.contratista}</td><td>${ag.map((d) => `${hhmm(d.inicio)} ${d.o.muni} <span class="note">(${d.o.tipo})</span>`).join("<br>") || "—"}</td><td>${ag.reduce((s, d) => s + d.km, 0).toFixed(0)}</td><td>${ag.length ? hhmm(ag[ag.length - 1].fin) : "—"}</td></tr>`;
+				}).join("") + `</table></div>`;
+		} else {
+			html = plan.sin.length ? `<div class="scroll"><table class="data"><tr><th>Orden</th><th>Tipo</th><th>Municipio</th><th>Ventana</th><th>Motivo</th></tr>` +
+				plan.sin.map((o) => `<tr><td><b>${o.id}</b></td><td>${o.tipo}</td><td>${o.muni}</td><td>${hhmm(o.ws)}–${hhmm(o.we)}</td><td>${esc(motivo(o, ST.esc, plan))}</td></tr>`).join("") + `</table></div>` : '<p class="note">Todas las órdenes tienen cuadrilla.</p>';
+		}
+		$("tab").innerHTML = html;
+	}
+
+	// ------------------------------------------------------------------ eventos
+	document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => { ST.tab = b.dataset.tab; pintarTab(); }));
+	const ver = (v) => { ST.ver = v; $("verReglas").setAttribute("aria-pressed", String(v === "reglas")); $("verOpt").setAttribute("aria-pressed", String(v === "opt")); pintarMapa(); pintarTab(); pintarFeed(); };
+	$("verReglas").addEventListener("click", () => ver("reglas"));
+	$("verOpt").addEventListener("click", () => ver("opt"));
+	for (const id of ["nOrd", "nCrew"]) $(id).addEventListener("input", () => { $(id + "V").textContent = $(id).value; });
+	for (const id of ["nOrd", "nCrew", "terreno", "apagon"]) $(id).addEventListener("change", generar);
+	$("nuevo").addEventListener("click", () => { ST.seed += 1; generar(); });
+	$("hora").addEventListener("input", () => { ST.hora = +$("hora").value; $("horaV").textContent = hhmm(ST.hora); pintarMapa(); pintarFeed(); });
+	$("play").addEventListener("click", () => {
+		if (ST.play) { clearInterval(ST.play); ST.play = null; $("play").textContent = "▶ Reproducir"; return; }
+		if (ST.hora >= 1080) ST.hora = 420;
+		$("play").textContent = "❚❚ Pausa";
+		ST.play = setInterval(() => {
+			ST.hora = Math.min(1080, ST.hora + 5);
+			$("hora").value = ST.hora; $("horaV").textContent = hhmm(ST.hora);
+			pintarMapa(); pintarFeed();
+			if (ST.hora >= 1080) { clearInterval(ST.play); ST.play = null; $("play").textContent = "▶ Reproducir"; }
+		}, 120);
+	});
+	generar();
+	// Abrir a media mañana para que el mapa y las alertas muestren el día en marcha
+	ST.hora = 690; $("hora").value = 690; $("horaV").textContent = hhmm(690);
+	pintarMapa(); pintarFeed();
+})();
+</script>
+</body>
+</html>

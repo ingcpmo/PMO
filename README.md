@@ -28,6 +28,27 @@ Herramienta de gestión de proyectos y operación de cuadrillas para instalacion
 
 Los rangos de medición y los códigos de cierre de los datos semilla son **valores típicos de la industria**; hay que reemplazarlos por los del manual y el contrato de Liberty.
 
+## Novedades v0.4: inteligencia operativa
+
+Lo anterior sigue igual; esto se suma y se activa en *QSG Configuracion IA*. Detalle en [`docs/inteligencia.md`](docs/inteligencia.md) y guía práctica en [`docs/guia-de-uso.md`](docs/guia-de-uso.md).
+
+| Área | Contenido |
+|---|---|
+| Optimizador | **Inteligencia → Optimizar rutas** en el plan: mejora el plan del motor por reglas (reordena, intercambia e inserta órdenes) con el terreno de Puerto Rico, la lancha a Vieques y Culebra, el peso de los clientes empresariales y la afinidad de cada cuadrilla con cada zona. Nunca devuelve un plan peor. |
+| GPS de cuadrillas | La app de campo envía la ubicación cada 2 minutos (guarda sin señal). Lectura opcional de rastreadores Traccar. |
+| Tablero `/despacho` | Mapa en vivo, alertas (*llegará tarde*, *detenida*, *sin señal*, *en sitio sin marcar*), recomendaciones, órdenes sin asignar, **mejor cuadrilla** con un clic, resumen del día y asistente. |
+| Zonas | Puntaje por zona, demanda contra capacidad de mañana y cuadrillas a mover desde zonas vecinas. |
+| Materiales | Qué recoger descontando lo que ya trae el camión, qué devolver, faltantes de la bodega central y equipos estancados. |
+| Pendientes | Evidencia, mediciones, serial, firma, órdenes trabadas, fallidas sin reprogramar, cierres sin salida de inventario. |
+| Clima e incidencias | Alertas del NWS de San Juan y apagones de LUMA, inundaciones o vías cerradas por zona: la zona no recibe trabajo. |
+| Órdenes desde texto | Se pega el correo o el mensaje de Liberty y sale la orden, sin duplicar. |
+| Modelo de lenguaje | Opcional: **Claude** (externo, sin datos personales por defecto) u **Ollama** (local). Sin modelo, todo funciona con reglas. |
+| Territorio | Los 78 municipios de Puerto Rico (la semilla cubría 50), zona Islas y el tipo «Reparación HFC empresarial». |
+| Apps | Android (APK) e **iPhone** (nuevo: [`instalacion/ios/`](instalacion/ios/)), construidas en la nube con GitHub Actions. |
+| Pruebas | Workflow **Pruebas** en GitHub: estilo, pruebas sin base de datos y, en un servidor real con Docker, las de integración, los 34 ataques de seguridad y la simulación de inicio a fin. |
+
+Integraciones investigadas y cómo conectarlas: [`docs/integraciones.md`](docs/integraciones.md).
+
 ## Instalación
 
 **Para probar en una PC o en Android, use la carpeta [`instalacion/`](instalacion/)**: `instalacion/pc/instalar.bat` instala todo con Docker y `instalacion/android/` genera la app QSG Campo (APK).
@@ -73,6 +94,8 @@ qsg_pmo/
 ├── www/campo.*          # app de campo (/campo)
 ├── public/              # JS, CSS, manifest e iconos de la app de campo
 ├── assignment/          # motor de asignación y SLA (Python puro)
+├── inteligencia/        # optimizador, GPS, zonas, materiales, pendientes, clima e IA (v0.4)
+├── www/despacho.*       # tablero de despacho (/despacho)
 ├── qsg_pmo/doctype/     # DocTypes del módulo "QSG PMO"
 ├── install.py           # roles y datos semilla
 ├── hooks.py             # dependencias, instalación y planificador (SLA cada 15 min)
