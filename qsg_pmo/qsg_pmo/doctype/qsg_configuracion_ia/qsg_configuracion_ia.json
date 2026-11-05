@@ -1,0 +1,333 @@
+{
+ "actions": [],
+ "creation": "2026-11-05 06:00:00.000000",
+ "description": "Configuración de la inteligencia operativa.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_llm",
+  "ai_provider",
+  "ai_model",
+  "ai_api_key",
+  "ai_base_url",
+  "cb_llm",
+  "ai_timeout",
+  "allow_personal_data",
+  "sb_opt",
+  "use_terrain",
+  "mountain_factor",
+  "ferry_minutes",
+  "use_learned_speed",
+  "cb_opt",
+  "b2b_delay_factor",
+  "affinity_minutes",
+  "optimizer_seconds",
+  "island_crews",
+  "sb_gps",
+  "gps_enabled",
+  "gps_interval_s",
+  "no_signal_minutes",
+  "idle_minutes",
+  "cb_gps",
+  "ping_retention_days",
+  "traccar_url",
+  "traccar_user",
+  "traccar_password",
+  "traccar_devices",
+  "sb_mat",
+  "net_material_requests",
+  "safety_margin_pct",
+  "spare_serialized",
+  "cb_mat",
+  "serialized_items",
+  "stuck_equipment_days",
+  "sb_clima",
+  "nws_enabled",
+  "nws_auto_incidents",
+  "cb_clima",
+  "nws_user_agent",
+  "sb_rec",
+  "recommendations_enabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_llm",
+   "fieldtype": "Section Break",
+   "label": "Modelo de lenguaje"
+  },
+  {
+   "default": "Ninguno",
+   "description": "Ninguno: todo funciona con reglas. Claude: modelo externo de Anthropic (requiere clave e internet). Ollama: modelo local en su servidor; los datos no salen.",
+   "fieldname": "ai_provider",
+   "fieldtype": "Select",
+   "label": "Proveedor",
+   "options": "Ninguno\nClaude\nOllama"
+  },
+  {
+   "description": "Vacío = claude-opus-5-5 (Claude) o qwen2.5:7b (Ollama).",
+   "fieldname": "ai_model",
+   "fieldtype": "Data",
+   "label": "Modelo"
+  },
+  {
+   "depends_on": "eval:doc.ai_provider=='Claude'",
+   "fieldname": "ai_api_key",
+   "fieldtype": "Password",
+   "label": "Clave de la API de Claude"
+  },
+  {
+   "depends_on": "eval:doc.ai_provider=='Ollama'",
+   "description": "Ej. http://192.168.1.60:11434",
+   "fieldname": "ai_base_url",
+   "fieldtype": "Data",
+   "label": "Dirección de Ollama"
+  },
+  {
+   "fieldname": "cb_llm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "60",
+   "fieldname": "ai_timeout",
+   "fieldtype": "Int",
+   "label": "Tiempo máximo de respuesta (s)"
+  },
+  {
+   "default": "0",
+   "description": "Apagado: a Claude no se le envían teléfonos, correos, cuentas, nombres ni calles.",
+   "fieldname": "allow_personal_data",
+   "fieldtype": "Check",
+   "label": "Permitir enviar datos personales al modelo externo"
+  },
+  {
+   "fieldname": "sb_opt",
+   "fieldtype": "Section Break",
+   "label": "Optimización del plan"
+  },
+  {
+   "default": "1",
+   "fieldname": "use_terrain",
+   "fieldtype": "Check",
+   "label": "Considerar terreno montañoso e islas"
+  },
+  {
+   "default": "0.65",
+   "description": "0.65 = en la montaña se avanza al 65 % de la velocidad normal.",
+   "fieldname": "mountain_factor",
+   "fieldtype": "Float",
+   "label": "Velocidad en la cordillera (fracción)",
+   "precision": "2"
+  },
+  {
+   "default": "150",
+   "fieldname": "ferry_minutes",
+   "fieldtype": "Int",
+   "label": "Minutos del cruce a Vieques o Culebra"
+  },
+  {
+   "default": "1",
+   "fieldname": "use_learned_speed",
+   "fieldtype": "Check",
+   "label": "Usar la velocidad real medida por GPS"
+  },
+  {
+   "fieldname": "cb_opt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "2",
+   "fieldname": "b2b_delay_factor",
+   "fieldtype": "Float",
+   "label": "Peso del atraso en clientes empresariales",
+   "precision": "1"
+  },
+  {
+   "default": "20",
+   "fieldname": "affinity_minutes",
+   "fieldtype": "Float",
+   "label": "Bonificación por afinidad cuadrilla-zona (min)",
+   "precision": "1"
+  },
+  {
+   "default": "5",
+   "fieldname": "optimizer_seconds",
+   "fieldtype": "Int",
+   "label": "Tiempo máximo del optimizador (s)"
+  },
+  {
+   "description": "Códigos separados por coma o línea. Las cuadrillas de la zona Islas ya lo están.",
+   "fieldname": "island_crews",
+   "fieldtype": "Small Text",
+   "label": "Cuadrillas habilitadas para Vieques y Culebra"
+  },
+  {
+   "fieldname": "sb_gps",
+   "fieldtype": "Section Break",
+   "label": "Seguimiento GPS"
+  },
+  {
+   "default": "1",
+   "fieldname": "gps_enabled",
+   "fieldtype": "Check",
+   "label": "Recibir la ubicación de la app de campo"
+  },
+  {
+   "default": "120",
+   "fieldname": "gps_interval_s",
+   "fieldtype": "Int",
+   "label": "Cada cuántos segundos envía la app"
+  },
+  {
+   "default": "20",
+   "fieldname": "no_signal_minutes",
+   "fieldtype": "Int",
+   "label": "Alerta «sin señal» después de (min)"
+  },
+  {
+   "default": "30",
+   "fieldname": "idle_minutes",
+   "fieldtype": "Int",
+   "label": "Alerta «detenida fuera de ruta» después de (min)"
+  },
+  {
+   "fieldname": "cb_gps",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "90",
+   "fieldname": "ping_retention_days",
+   "fieldtype": "Int",
+   "label": "Días que se guardan las ubicaciones"
+  },
+  {
+   "description": "Ej. https://gps.qsg.pr",
+   "fieldname": "traccar_url",
+   "fieldtype": "Data",
+   "label": "Servidor Traccar (opcional)"
+  },
+  {
+   "fieldname": "traccar_user",
+   "fieldtype": "Data",
+   "label": "Usuario de Traccar"
+  },
+  {
+   "fieldname": "traccar_password",
+   "fieldtype": "Password",
+   "label": "Contraseña de Traccar"
+  },
+  {
+   "description": "Una línea por vehículo: deviceId=CÓDIGO-DE-CUADRILLA",
+   "fieldname": "traccar_devices",
+   "fieldtype": "Small Text",
+   "label": "Dispositivos de Traccar"
+  },
+  {
+   "fieldname": "sb_mat",
+   "fieldtype": "Section Break",
+   "label": "Materiales"
+  },
+  {
+   "default": "0",
+   "description": "Apagado: el plan pide el kit completo, como hasta ahora. Encendido: pide solo lo que falta en el camión.",
+   "fieldname": "net_material_requests",
+   "fieldtype": "Check",
+   "label": "Descontar el stock del camión en las solicitudes del plan"
+  },
+  {
+   "default": "10",
+   "fieldname": "safety_margin_pct",
+   "fieldtype": "Percent",
+   "label": "Margen de seguridad"
+  },
+  {
+   "default": "1",
+   "fieldname": "spare_serialized",
+   "fieldtype": "Int",
+   "label": "Repuestos de equipos con serial por cuadrilla"
+  },
+  {
+   "fieldname": "cb_mat",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Códigos de ONT, módems, routers… uno por línea.",
+   "fieldname": "serialized_items",
+   "fieldtype": "Small Text",
+   "label": "Artículos con serial"
+  },
+  {
+   "default": "7",
+   "fieldname": "stuck_equipment_days",
+   "fieldtype": "Int",
+   "label": "Alerta si un equipo lleva en el camión más de (días)"
+  },
+  {
+   "fieldname": "sb_clima",
+   "fieldtype": "Section Break",
+   "label": "Clima e incidencias"
+  },
+  {
+   "default": "0",
+   "description": "Servicio Nacional de Meteorología (api.weather.gov). Requiere salida a internet.",
+   "fieldname": "nws_enabled",
+   "fieldtype": "Check",
+   "label": "Consultar las alertas del NWS cada hora"
+  },
+  {
+   "default": "0",
+   "description": "Apagado: las alertas llegan como recomendaciones para que despacho decida.",
+   "fieldname": "nws_auto_incidents",
+   "fieldtype": "Check",
+   "label": "Crear incidencias automáticamente"
+  },
+  {
+   "fieldname": "cb_clima",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "QSG PMO (operaciones)",
+   "fieldname": "nws_user_agent",
+   "fieldtype": "Data",
+   "label": "Identificación ante el NWS"
+  },
+  {
+   "fieldname": "sb_rec",
+   "fieldtype": "Section Break",
+   "label": "Recomendaciones"
+  },
+  {
+   "default": "1",
+   "description": "Cada 15 minutos revisa GPS, pendientes, SLA y zonas, y crea recomendaciones en QSG Recomendacion.",
+   "fieldname": "recommendations_enabled",
+   "fieldtype": "Check",
+   "label": "Generar recomendaciones automáticas"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-05 06:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Configuracion IA",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "role": "QSG Gerente",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

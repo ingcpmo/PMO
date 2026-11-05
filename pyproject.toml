@@ -9,6 +9,8 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # "frappe~=16.0.0" # Installed and managed by bench.
+    # SDK de Claude para la inteligencia operativa (qsg_pmo/inteligencia/ia.py)
+    "anthropic>=2.5,<3",
 ]
 
 [build-system]

@@ -1,0 +1,154 @@
+{
+ "actions": [],
+ "autoname": "INC-.YYYY.-.#####",
+ "creation": "2026-11-05 06:00:00.000000",
+ "description": "Apagones de LUMA, inundaciones, vías cerradas o alertas del clima que afectan una zona.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "zone",
+  "incident_type",
+  "impact",
+  "active",
+  "cb1",
+  "from_datetime",
+  "to_datetime",
+  "source",
+  "external_id",
+  "sb1",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "zone",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Zona",
+   "options": "QSG Zona",
+   "reqd": 1
+  },
+  {
+   "fieldname": "incident_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Tipo",
+   "options": "Apagón LUMA\nInundación\nVía cerrada\nAlerta de clima\nSeguridad\nOtro",
+   "reqd": 1
+  },
+  {
+   "default": "Suspender",
+   "description": "Suspender: la zona no recibe trabajo. Sin altura: no se programan trabajos que requieren ALTURA. Precaución: solo aviso.",
+   "fieldname": "impact",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Impacto",
+   "options": "Suspender\nSin altura\nPrecaución",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Activa"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Now",
+   "fieldname": "from_datetime",
+   "fieldtype": "Datetime",
+   "label": "Desde",
+   "reqd": 1
+  },
+  {
+   "description": "Vacío = hasta que se desactive.",
+   "fieldname": "to_datetime",
+   "fieldtype": "Datetime",
+   "label": "Hasta"
+  },
+  {
+   "default": "Manual",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Origen",
+   "options": "Manual\nNWS",
+   "read_only": 1
+  },
+  {
+   "fieldname": "external_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Identificador externo",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notas"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-05 06:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Incidencia Zona",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Gerente",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Despachador",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "QSG Supervisor Contratista"
+  },
+  {
+   "read": 1,
+   "role": "QSG Tecnico"
+  },
+  {
+   "read": 1,
+   "role": "QSG Bodega"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "zone",
+ "track_changes": 1
+}

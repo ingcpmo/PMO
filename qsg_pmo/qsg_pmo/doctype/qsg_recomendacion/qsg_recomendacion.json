@@ -1,0 +1,189 @@
+{
+ "actions": [],
+ "autoname": "REC-.YYYY.-.######",
+ "creation": "2026-11-05 06:00:00.000000",
+ "description": "Recomendaciones de la inteligencia operativa. Una persona decide si se aceptan.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "rec_time",
+  "rec_type",
+  "priority",
+  "status",
+  "title",
+  "cb1",
+  "order",
+  "crew",
+  "zone",
+  "source",
+  "sb1",
+  "detail",
+  "action",
+  "sb2",
+  "resolved_by",
+  "resolved_on",
+  "dedupe_key"
+ ],
+ "fields": [
+  {
+   "fieldname": "rec_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Fecha y hora",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rec_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Tipo",
+   "options": "Reasignación\nMovimiento de cuadrilla\nMateriales\nPendiente\nTracking\nClima\nPlan\nZona",
+   "reqd": 1
+  },
+  {
+   "default": "Media",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Prioridad",
+   "options": "Alta\nMedia\nBaja"
+  },
+  {
+   "default": "Nueva",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Estado",
+   "options": "Nueva\nAceptada\nDescartada\nResuelta"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Recomendación",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "order",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Orden",
+   "options": "QSG Orden"
+  },
+  {
+   "fieldname": "crew",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Cuadrilla",
+   "options": "QSG Cuadrilla"
+  },
+  {
+   "fieldname": "zone",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Zona",
+   "options": "QSG Zona"
+  },
+  {
+   "default": "Reglas",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Generada por",
+   "options": "Reglas\nIA",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "detail",
+   "fieldtype": "Text",
+   "label": "Detalle",
+   "read_only": 1
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Small Text",
+   "label": "Acción sugerida",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "label": "Seguimiento"
+  },
+  {
+   "fieldname": "resolved_by",
+   "fieldtype": "Link",
+   "label": "Atendida por",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resolved_on",
+   "fieldtype": "Datetime",
+   "label": "Atendida el",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dedupe_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Clave",
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-05 06:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Recomendacion",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Gerente",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "QSG Despachador",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "QSG Bodega"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "rec_time",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+}

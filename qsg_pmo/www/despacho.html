@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#0b5cab">
+	<title>QSG Despacho</title>
+	<link rel="icon" href="/assets/qsg_pmo/images/qsg-icon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/qsg_pmo/vendor/leaflet/leaflet.css?v={{ version }}">
+	<link rel="stylesheet" href="/assets/qsg_pmo/css/despacho.css?v={{ version }}">
+</head>
+<body>
+	<div id="despacho" data-csrf="{{ csrf_token | e }}" data-name="{{ full_name | e }}" data-despacha="{{ despacha }}">
+		<header class="barra">
+			<div class="marca">QSG <b>Despacho</b></div>
+			<input type="date" id="fecha" aria-label="Fecha">
+			<button id="actualizar" class="btn">Actualizar</button>
+			<button id="btn-briefing" class="btn primario">Resumen del día</button>
+			<span id="proveedor" class="chip" title="Modelo de lenguaje configurado"></span>
+			<a class="enlace" href="/app/qsg-pmo">Escritorio</a>
+		</header>
+		<section id="kpis" class="kpis" aria-live="polite"></section>
+		<main class="cuerpo">
+			<div id="mapa" aria-label="Mapa de cuadrillas y órdenes"></div>
+			<aside class="panel">
+				<nav class="pestanas" role="tablist">
+					<button data-tab="alertas" class="on">Alertas</button>
+					<button data-tab="recomendaciones">Recomendaciones</button>
+					<button data-tab="cuadrillas">Cuadrillas</button>
+					<button data-tab="sinasignar">Sin asignar</button>
+					<button data-tab="asistente">Asistente</button>
+				</nav>
+				<div id="contenido" class="contenido"></div>
+			</aside>
+		</main>
+		<div id="modal" class="modal" hidden>
+			<div class="caja">
+				<button class="cerrar" aria-label="Cerrar">×</button>
+				<div class="modal-cuerpo"></div>
+			</div>
+		</div>
+	</div>
+	<script src="/assets/qsg_pmo/vendor/leaflet/leaflet.js?v={{ version }}"></script>
+	<script src="/assets/qsg_pmo/js/despacho.js?v={{ version }}"></script>
+</body>
+</html>

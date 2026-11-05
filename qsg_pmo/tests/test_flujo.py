@@ -86,7 +86,22 @@ class TestFlujoQSG(IntegrationTestCase):
 		make_crew("T-FTTH-SJ", "Contratista Prueba", SAN_JUAN, ["FTTH-RES", "RECONECT"], "Metro")
 		make_crew("T-HFC-CAG", "Contratista Prueba", CAGUAS, ["HFC-RES", "RECONECT"], "Este")
 
+	def solo_cuadrillas_de_prueba(self):
+		"""El sitio puede tener la demostración cargada; el plan solo debe ver las cuadrillas de la prueba."""
+		otras = frappe.get_all(
+			"QSG Cuadrilla", filters={"active": 1, "contractor": ("!=", "Contratista Prueba")}, pluck="name"
+		)
+		for name in otras:
+			frappe.db.set_value("QSG Cuadrilla", name, "active", 0)
+
+		def reactivar():
+			for name in otras:
+				frappe.db.set_value("QSG Cuadrilla", name, "active", 1)
+
+		self.addCleanup(reactivar)
+
 	def test_flujo_completo(self):
+		self.solo_cuadrillas_de_prueba()
 		date = add_days(nowdate(), 1)
 		o1 = make_order("T-1001", "FTTH-INST-RES", SAN_JUAN, date)
 		o2 = make_order("T-1002", "HFC-INST-RES", CAGUAS, date, zone="Este")

@@ -16,3 +16,8 @@ RUN SITE=$(./env/bin/python -c "import sysconfig; print(sysconfig.get_paths()['p
     && ./env/bin/python -c "import qsg_pmo; print('qsg_pmo', qsg_pmo.__version__)" \
     && ln -sfn /home/frappe/frappe-bench/apps/qsg_pmo/qsg_pmo/public assets/qsg_pmo \
     && (grep -qx qsg_pmo sites/apps.txt || echo qsg_pmo >> sites/apps.txt)
+
+# SDK de Claude para la inteligencia operativa (opcional: sin internet la app funciona con reglas o Ollama).
+# Solo agrega paquetes nuevos; no cambia las versiones que usa Frappe.
+RUN ./env/bin/pip install --no-cache-dir "anthropic>=2.5,<3" \
+    || echo "Aviso: no se instaló anthropic; el proveedor Claude no estará disponible"

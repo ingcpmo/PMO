@@ -322,3 +322,22 @@ override_doctype_class = {"File": "qsg_pmo.seguridad.archivos.ArchivoQSG"}
 
 # Cabeceras de seguridad y registro de eventos al final de cada petición
 after_request = ["qsg_pmo.seguridad.cabeceras.after_request"]
+
+# --- Inteligencia operativa (qsg_pmo/inteligencia) ---
+# Bloque agregado: extiende lo anterior sin cambiarlo.
+scheduler_events["cron"]["*/15 * * * *"].append("qsg_pmo.inteligencia.tareas.cada_15_minutos")
+scheduler_events["cron"]["*/5 * * * *"] = ["qsg_pmo.inteligencia.tareas.cada_5_minutos"]
+scheduler_events["hourly"] = ["qsg_pmo.inteligencia.tareas.cada_hora"]
+scheduler_events["daily"] = ["qsg_pmo.inteligencia.tareas.diaria"]
+
+# Municipios que faltaban, zona Islas, tipo HFC empresarial y valores de QSG Configuracion IA
+after_migrate = [after_migrate, "qsg_pmo.inteligencia.semilla.completar"]
+
+# Al aprobar un plan, ajusta las solicitudes de materiales al stock del camión (si se activa)
+doc_events["QSG Plan de Despacho"] = {"on_update": ["qsg_pmo.inteligencia.servicio.al_actualizar_plan"]}
+
+# Botones de inteligencia en formularios existentes, en archivos aparte
+doctype_js = {
+	"QSG Plan de Despacho": "public/js/plan_inteligente.js",
+	"QSG Orden": "public/js/orden_inteligente.js",
+}

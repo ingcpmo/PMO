@@ -1,0 +1,147 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-05 06:00:00.000000",
+ "description": "Ubicaciones GPS que envían la app de campo o un rastreador Traccar.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "crew",
+  "ping_time",
+  "latitude",
+  "longitude",
+  "accuracy_m",
+  "speed_kmh",
+  "battery",
+  "cb1",
+  "user",
+  "order",
+  "zone",
+  "source"
+ ],
+ "fields": [
+  {
+   "fieldname": "crew",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cuadrilla",
+   "options": "QSG Cuadrilla",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "ping_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Fecha y hora",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Latitud",
+   "precision": "6",
+   "read_only": 1
+  },
+  {
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Longitud",
+   "precision": "6",
+   "read_only": 1
+  },
+  {
+   "fieldname": "accuracy_m",
+   "fieldtype": "Float",
+   "label": "Precisión (m)",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "speed_kmh",
+   "fieldtype": "Float",
+   "label": "Velocidad (km/h)",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "battery",
+   "fieldtype": "Int",
+   "label": "Batería (%)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Usuario",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "order",
+   "fieldtype": "Link",
+   "label": "Orden en curso",
+   "options": "QSG Orden",
+   "read_only": 1
+  },
+  {
+   "fieldname": "zone",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Zona",
+   "options": "QSG Zona",
+   "read_only": 1
+  },
+  {
+   "default": "App",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Fuente",
+   "options": "App\nTraccar",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-05 06:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Ubicacion",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Gerente"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "QSG Despachador"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "ping_time",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "crew"
+}
