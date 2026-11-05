@@ -12,9 +12,11 @@ Herramienta de gestión de proyectos y operación de cuadrillas para instalacion
 
 | Qué | Dónde | Cómo |
 |---|---|---|
-| **La app completa** (tablero, app del técnico, jornada simulada en vivo) | [![Abrir en GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ingcpmo/PMO/tree/claude/optimistic-noether-2uct53?quickstart=1) | Con su cuenta de GitHub. El primer arranque tarda 10 a 15 minutos; usuarios y pasos en [`.devcontainer/LEAME.md`](.devcontainer/LEAME.md). |
+| **La app completa** (tablero, app del técnico, jornada simulada en vivo) | [![Abrir en GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=claude%2Foptimistic-noether-2uct53&repo=1446223164&quickstart=1) | Con su cuenta de GitHub. El primer arranque tarda 10 a 15 minutos; usuarios y pasos en [`.devcontainer/LEAME.md`](.devcontainer/LEAME.md). |
 | **El motor inteligente** (optimizador, GPS, materiales, zonas, órdenes desde texto) | [![Abrir en Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ingcpmo/PMO/blob/claude/optimistic-noether-2uct53/docs/simulaciones/QSG_PMO_Colab.ipynb) | Entorno de ejecución → Ejecutar todo. Menos de un minuto. |
 | **En el celular** | La dirección de Codespaces + `/campo` | Chrome en Android → ⋮ → Agregar a la pantalla principal. |
+
+Si el botón de Codespaces no abre la rama: en esta página elija la rama `claude/optimistic-noether-2uct53` → botón verde **Code** → pestaña **Codespaces** → **Create codespace on claude/optimistic-noether-2uct53**.
 
 ## Qué incluye (v0.3)
 

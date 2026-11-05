@@ -4,7 +4,7 @@ Guía práctica por rol. Lo que ya funcionaba sigue igual; aquí se explica cóm
 
 ## Probar sin instalar nada
 
-- **App completa con datos de demostración:** [GitHub Codespaces](https://codespaces.new/ingcpmo/PMO/tree/claude/optimistic-noether-2uct53?quickstart=1). En el tablero, **▶ Simular jornada** mueve las cuadrillas por GPS, cierra órdenes y a mitad del día entra una avería urgente para resolver con **Mejor cuadrilla**. Usuarios en [`.devcontainer/LEAME.md`](../.devcontainer/LEAME.md).
+- **App completa con datos de demostración:** [GitHub Codespaces](https://github.com/codespaces/new?hide_repo_select=true&ref=claude%2Foptimistic-noether-2uct53&repo=1446223164&quickstart=1). En el tablero, **▶ Simular jornada** mueve las cuadrillas por GPS, cierra órdenes y a mitad del día entra una avería urgente para resolver con **Mejor cuadrilla**. Usuarios en [`.devcontainer/LEAME.md`](../.devcontainer/LEAME.md).
 - **Motor inteligente:** [notebook de Google Colab](https://colab.research.google.com/github/ingcpmo/PMO/blob/claude/optimistic-noether-2uct53/docs/simulaciones/QSG_PMO_Colab.ipynb).
 
 ## Antes de empezar (una sola vez, gerencia)
