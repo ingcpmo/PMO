@@ -82,10 +82,48 @@
 
 	// ------------------------------------------------------------------ mapa
 	const mapa = L.map("mapa").setView([18.22, -66.45], 9);
-	L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+	const mosaicos = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 		maxZoom: 18,
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 	}).addTo(mapa);
+	// Mapa de respaldo: si los mosaicos de OpenStreetMap no cargan (sin internet o una red que los
+	// bloquea), se dibujan los 78 municipios de Puerto Rico que trae la app. Se quita si vuelven.
+	let respaldo = null;
+	let pidiendoRespaldo = false;
+	let mosaicoCargado = false;
+	mosaicos.on("tileload", () => {
+		mosaicoCargado = true;
+		if (respaldo) {
+			mapa.removeLayer(respaldo);
+			respaldo = null;
+			mapa.getContainer().classList.remove("sin-mosaicos");
+		}
+	});
+	mosaicos.on("tileerror", () => {
+		if (respaldo || pidiendoRespaldo || mosaicoCargado) return;
+		pidiendoRespaldo = true;
+		fetch("/assets/qsg_pmo/geo/pr-municipios.json")
+			.then((r) => r.json())
+			.then((geo) => {
+				if (mosaicoCargado) return;
+				const css = getComputedStyle(document.documentElement);
+				if (!mapa.getPane("respaldo")) mapa.createPane("respaldo").style.zIndex = 250;
+				respaldo = L.geoJSON(geo, {
+					pane: "respaldo",
+					interactive: false,
+					style: {
+						color: css.getPropertyValue("--limite").trim(),
+						weight: 0.8,
+						fillColor: css.getPropertyValue("--tierra").trim(),
+						fillOpacity: 1,
+					},
+				}).addTo(mapa);
+				mapa.getContainer().classList.add("sin-mosaicos");
+				mapa.attributionControl.addAttribution("Municipios: U.S. Census Bureau");
+			})
+			.catch(() => {})
+			.finally(() => (pidiendoRespaldo = false));
+	});
 	const capaOrdenes = L.layerGroup().addTo(mapa);
 	const capaCuadrillas = L.layerGroup().addTo(mapa);
 	const capaIncidencias = L.layerGroup().addTo(mapa);

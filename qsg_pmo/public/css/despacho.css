@@ -11,6 +11,9 @@
 	--rojo: #c62828;
 	--gris: #8a96a3;
 	--sombra: 0 1px 3px rgba(16, 24, 40, 0.08);
+	--mar: #d4e3ee;
+	--tierra: #fbfcfd;
+	--limite: #94a3b2;
 }
 @media (prefers-color-scheme: dark) {
 	:root {
@@ -25,6 +28,9 @@
 		--rojo: #ef6a6a;
 		--gris: #7c8895;
 		--sombra: none;
+		--mar: #0e1b25;
+		--tierra: #1f2831;
+		--limite: #43515f;
 	}
 }
 * { box-sizing: border-box; }
@@ -54,6 +60,7 @@ body { background: var(--fondo); color: var(--texto); font: 14px/1.45 system-ui,
 
 .cuerpo { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 0; min-height: 0; }
 #mapa { min-height: 360px; }
+#mapa.sin-mosaicos { background: var(--mar); }
 .panel { display: flex; flex-direction: column; background: var(--panel); border-left: 1px solid var(--borde); min-height: 0; }
 .pestanas { display: flex; overflow-x: auto; border-bottom: 1px solid var(--borde); }
 .pestanas button { flex: 1; padding: 10px 8px; border: 0; background: none; color: var(--suave); cursor: pointer; font: inherit; white-space: nowrap; border-bottom: 2px solid transparent; }
