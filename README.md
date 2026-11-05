@@ -8,6 +8,14 @@ Herramienta de gestión de proyectos y operación de cuadrillas para instalacion
 - API para la app de campo y para Liberty: [`docs/api.md`](docs/api.md)
 - Investigación que llevó a esta base: [`research/`](research/)
 
+## Probarla en la nube
+
+| Qué | Dónde | Cómo |
+|---|---|---|
+| **La app completa** (tablero, app del técnico, jornada simulada en vivo) | [![Abrir en GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ingcpmo/PMO/tree/claude/optimistic-noether-2uct53?quickstart=1) | Con su cuenta de GitHub. El primer arranque tarda 10 a 15 minutos; usuarios y pasos en [`.devcontainer/LEAME.md`](.devcontainer/LEAME.md). |
+| **El motor inteligente** (optimizador, GPS, materiales, zonas, órdenes desde texto) | [![Abrir en Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ingcpmo/PMO/blob/claude/optimistic-noether-2uct53/docs/simulaciones/QSG_PMO_Colab.ipynb) | Entorno de ejecución → Ejecutar todo. Menos de un minuto. |
+| **En el celular** | La dirección de Codespaces + `/campo` | Chrome en Android → ⋮ → Agregar a la pantalla principal. |
+
 ## Qué incluye (v0.3)
 
 | Área | Contenido |

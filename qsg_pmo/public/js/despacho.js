@@ -419,11 +419,50 @@
 	});
 	if (!DESPACHA) document.getElementById("btn-briefing").hidden = true;
 
+	// ------------------------------------------------------------------ jornada simulada (solo demostración)
+	const $sim = document.getElementById("sim");
+	const $simReiniciar = document.getElementById("sim-reiniciar");
+	let simulando = null;
+	function detenerSimulacion(mensaje, malo = false) {
+		clearInterval(simulando);
+		simulando = null;
+		$sim.textContent = "▶ Simular jornada";
+		if (mensaje) aviso(mensaje, malo);
+	}
+	async function pasoSimulado() {
+		try {
+			const r = await post("demo_paso");
+			if (r.eventos.length) aviso(r.eventos.slice(0, 2).join(" · "));
+			await cargar();
+			if (!r.quedan) detenerSimulacion("Jornada terminada: todas las órdenes del día se cerraron.");
+		} catch (err) {
+			detenerSimulacion(err.message, true);
+		}
+	}
+	$sim.addEventListener("click", () => {
+		if (simulando) return detenerSimulacion();
+		$sim.textContent = "❚❚ Pausar simulación";
+		pasoSimulado();
+		simulando = setInterval(pasoSimulado, 6000);
+	});
+	$simReiniciar.addEventListener("click", async () => {
+		detenerSimulacion();
+		try {
+			const r = await post("demo_reiniciar");
+			aviso(`Jornada reiniciada: ${r.ordenes} órdenes para hoy`);
+			encuadrado = false;
+			await cargar();
+		} catch (err) {
+			aviso(err.message, true);
+		}
+	});
+
 	// ------------------------------------------------------------------ carga
 	async function cargar() {
 		try {
 			S.datos = await get("tablero", { fecha: document.getElementById("fecha").value });
 			document.getElementById("proveedor").textContent = `IA: ${S.datos.ia}`;
+			$sim.hidden = $simReiniciar.hidden = !(S.datos.demo && DESPACHA);
 			pintarKpis();
 			pintarMapa();
 			if (S.tab !== "asistente") pintarPanel();

@@ -93,6 +93,8 @@ class Resultado:
 	mejoras: int = 0
 	usa_reglas: bool = False
 	notas: list[str] = field(default_factory=list)
+	# El plan del motor por reglas tal como queda con el terreno real (lo que se compara)
+	asignaciones_referencia: list[Assignment] = field(default_factory=list)
 
 	@property
 	def km_ahorrados(self) -> float:
@@ -481,4 +483,5 @@ def optimizar(
 		mejoras=mejoras,
 		usa_reglas=usa_reglas,
 		notas=notas,
+		asignaciones_referencia=p.asignaciones(rutas_ref),
 	)

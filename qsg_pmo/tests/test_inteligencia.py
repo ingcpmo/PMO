@@ -498,6 +498,8 @@ class TestSolicitudes(unittest.TestCase):
 			solicitudes.prioridad(n("Hospital sin internet"), "Empresarial", "Reparación"), "Crítica"
 		)
 		self.assertEqual(solicitudes.prioridad(n("no urgente, cuando puedan"), "Residencial", None), "Baja")
+		d = solicitudes.extraer("Instalación de internet por cable para casa en Humacao", CATALOGO, HOY)
+		self.assertEqual(d["work_type"], "HFC-INST-RES")
 
 	def test_etiquetas_en_una_sola_linea(self):
 		texto = (

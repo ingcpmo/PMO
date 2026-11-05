@@ -6,3 +6,4 @@ instalacion
 **/__pycache__
 **/*.pyc
 node_modules
+.devcontainer

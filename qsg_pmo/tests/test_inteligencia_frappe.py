@@ -197,6 +197,53 @@ class TestInteligenciaFrappe(IntegrationTestCase):
 		self.assertIn("cuadrillas", t)
 		self.assertIn("IA-FTTH-SJ", [c["cuadrilla"] for c in t["cuadrillas"]])
 
+	def test_jornada_simulada_solo_en_sitio_de_demostracion(self):
+		from qsg_pmo import demo
+		from qsg_pmo.inteligencia import demo_vivo
+
+		frappe.local.conf.qsg_demo_vivo = 0
+		self.addCleanup(lambda: frappe.local.conf.pop("qsg_demo_vivo", None))
+		self.assertRaises(frappe.PermissionError, demo_vivo.paso)
+		frappe.local.conf.qsg_demo_vivo = 1
+		if not frappe.db.exists("QSG Orden", {"customer": demo.CUSTOMER, "external_order_id": "LPR-552301"}):
+			demo.crear()
+		self.assertGreaterEqual(demo_vivo.reiniciar()["ordenes"], 8)
+		self.addCleanup(demo_vivo.reiniciar)
+		cerradas = 0
+		for _ in range(40):
+			r = demo_vivo.paso()
+			cerradas = frappe.db.count(
+				"QSG Orden",
+				{
+					"customer": demo.CUSTOMER,
+					"external_order_id": ("like", "LPR-%"),
+					"status": ("in", ("Completada", "No completada")),
+					"appointment_date": nowdate(),
+				},
+			)
+			if cerradas >= 2 and r["paso"] >= 3:
+				break
+		self.assertGreaterEqual(cerradas, 2)
+		self.assertTrue(frappe.db.exists("QSG Ubicacion", {"crew": "CUA-FTTH-01"}))
+		self.assertTrue(
+			frappe.db.exists("QSG Orden", {"customer": demo.CUSTOMER, "external_order_id": demo_vivo.URGENTE})
+		)
+		self.assertTrue(
+			frappe.db.exists("QSG Recomendacion", {"rec_type": "Reasignación", "status": "Nueva"})
+		)
+		r = demo_vivo.reiniciar()
+		self.assertFalse(
+			frappe.db.exists("QSG Orden", {"customer": demo.CUSTOMER, "external_order_id": demo_vivo.URGENTE})
+		)
+		self.assertEqual(
+			frappe.db.count(
+				"QSG Orden",
+				{"customer": demo.CUSTOMER, "status": "Completada", "external_order_id": ("like", "LPR-%")},
+			),
+			0,
+		)
+		self.assertEqual(r["fecha"], nowdate())
+
 	def test_briefing_y_asistente_sin_modelo(self):
 		b = servicio.briefing()
 		self.assertEqual(b["proveedor"], "Ninguno")

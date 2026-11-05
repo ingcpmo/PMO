@@ -71,7 +71,7 @@ def _tiene(n: str, *palabras: str) -> bool:
 def tecnologia(n: str) -> str | None:
 	if _tiene(n, "fibra", "ftth", "ont\\b", "gpon", "optic", "splitter", "cto\\b", "roseta"):
 		return "FTTH"
-	if _tiene(n, "hfc", "coax", "docsis", "cable ?modem", "modem", "tap\\b", "conector f\\b"):
+	if _tiene(n, "hfc", "coax", "docsis", "cable ?modem", "modem", "tap\\b", "conector f\\b", "por cable"):
 		return "HFC"
 	return None
 

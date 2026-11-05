@@ -144,3 +144,23 @@ def briefing(fecha=None) -> dict:
 def preguntar(pregunta: str) -> dict:
 	frappe.only_for(s.DESPACHO)
 	return s.preguntar(pregunta)
+
+
+@frappe.whitelist(methods=["POST"])
+@limitar()
+def demo_paso() -> dict:
+	"""Jornada simulada (solo en un sitio de demostración): avanza un paso."""
+	frappe.only_for(s.DESPACHO)
+	from qsg_pmo.inteligencia import demo_vivo
+
+	return demo_vivo.paso()
+
+
+@frappe.whitelist(methods=["POST"])
+@limitar(factor=0.1)
+def demo_reiniciar() -> dict:
+	"""Jornada simulada (solo en un sitio de demostración): vuelve a empezar el día."""
+	frappe.only_for(s.DESPACHO)
+	from qsg_pmo.inteligencia import demo_vivo
+
+	return demo_vivo.reiniciar()

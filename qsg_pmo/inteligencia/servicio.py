@@ -1460,4 +1460,5 @@ def tablero(fecha=None) -> dict:
 			for z in frappe.get_all("QSG Zona", fields=["name", "latitude", "longitude"])
 		},
 		"ia": cfg().ai_provider or ia.NINGUNO,
+		"demo": bool(cint(frappe.conf.get("qsg_demo_vivo"))),
 	}

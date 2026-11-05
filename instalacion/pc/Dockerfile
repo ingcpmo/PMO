@@ -21,3 +21,11 @@ RUN SITE=$(./env/bin/python -c "import sysconfig; print(sysconfig.get_paths()['p
 # Solo agrega paquetes nuevos; no cambia las versiones que usa Frappe.
 RUN ./env/bin/pip install --no-cache-dir "anthropic>=2.5,<3" \
     || echo "Aviso: no se instaló anthropic; el proveedor Claude no estará disponible"
+
+# Tiempo real (socket.io) también al entrar por localhost o por la dirección de GitHub Codespaces:
+# la plantilla oficial fija el Origin al nombre del sitio («frontend») y el servidor de tiempo real
+# lo rechaza («Invalid origin»). Con el Origin del propio host la verificación coincide.
+USER root
+RUN sed -i 's#proxy_set_header Origin $proxy_x_forwarded_proto://${FRAPPE_SITE_NAME_HEADER};#proxy_set_header Origin $proxy_x_forwarded_proto://$host;#' \
+    /templates/nginx/frappe.conf.template
+USER frappe

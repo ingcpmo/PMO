@@ -1,0 +1,26 @@
+{
+	"name": "QSG PMO · demostración",
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	"hostRequirements": {
+		"cpus": 4,
+		"memory": "8gb",
+		"storage": "32gb"
+	},
+	"postCreateCommand": "bash .devcontainer/iniciar.sh",
+	"postStartCommand": "bash .devcontainer/arrancar.sh",
+	"forwardPorts": [8080],
+	"portsAttributes": {
+		"8080": {
+			"label": "QSG PMO",
+			"onAutoForward": "openBrowser"
+		}
+	},
+	"customizations": {
+		"codespaces": {
+			"openFiles": [".devcontainer/LEAME.md"]
+		}
+	}
+}

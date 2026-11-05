@@ -45,6 +45,8 @@ services:
         bench set-config -g redis_queue "redis://$$REDIS_QUEUE";
         bench set-config -g redis_socketio "redis://$$REDIS_QUEUE";
         bench set-config -gp socketio_port $$SOCKETIO_PORT;
+        bench set-config -g webserver_host backend;
+        bench set-config -gp webserver_port 8000;
     environment:
       DB_HOST: db
       DB_PORT: "3306"
