@@ -1,0 +1,40 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-11-05 05:08:43.064935",
+ "disable_prepared_report_automation": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "doctype_to_sync": [],
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": null,
+ "modified": "2026-11-05 05:08:43.064935",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "Capacidad por Contratista",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "QSG Contratista",
+ "report_name": "Capacidad por Contratista",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "QSG Gerente"
+  },
+  {
+   "role": "QSG Despachador"
+  },
+  {
+   "role": "QSG Supervisor Contratista"
+  }
+ ],
+ "snapshot_report": 0,
+ "timeout": 0
+}

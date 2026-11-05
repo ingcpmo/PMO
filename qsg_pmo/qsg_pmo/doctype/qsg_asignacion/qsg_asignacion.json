@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-11-05 04:57:09.954007",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "order",
+  "crew",
+  "sequence",
+  "estimated_arrival",
+  "estimated_finish",
+  "travel_km",
+  "travel_minutes"
+ ],
+ "fields": [
+  {
+   "fieldname": "order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Orden",
+   "options": "QSG Orden",
+   "reqd": 1
+  },
+  {
+   "fieldname": "crew",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Cuadrilla",
+   "options": "QSG Cuadrilla",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Secuencia"
+  },
+  {
+   "fieldname": "estimated_arrival",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Llegada estimada"
+  },
+  {
+   "fieldname": "estimated_finish",
+   "fieldtype": "Datetime",
+   "label": "Fin estimado"
+  },
+  {
+   "fieldname": "travel_km",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Km estimados"
+  },
+  {
+   "fieldname": "travel_minutes",
+   "fieldtype": "Float",
+   "label": "Minutos de viaje"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-05 04:57:09.954007",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Asignacion",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

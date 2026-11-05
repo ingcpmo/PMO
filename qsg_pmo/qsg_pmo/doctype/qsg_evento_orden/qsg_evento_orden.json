@@ -1,0 +1,93 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-11-05 05:08:40.006311",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "event_time",
+  "event_type",
+  "from_value",
+  "to_value",
+  "reason",
+  "user",
+  "latitude",
+  "longitude"
+ ],
+ "fields": [
+  {
+   "fieldname": "event_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Fecha y hora",
+   "read_only": 1
+  },
+  {
+   "fieldname": "event_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Tipo",
+   "options": "Estado\nAsignaci\u00f3n\nReasignaci\u00f3n\nNota",
+   "read_only": 1
+  },
+  {
+   "fieldname": "from_value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "De",
+   "read_only": 1
+  },
+  {
+   "fieldname": "to_value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "A",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Motivo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Usuario",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "label": "Latitud",
+   "precision": "6",
+   "read_only": 1
+  },
+  {
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "label": "Longitud",
+   "precision": "6",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-05 05:08:40.006311",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Evento Orden",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

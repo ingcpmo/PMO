@@ -1,0 +1,222 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "field:work_type_code",
+ "creation": "2026-11-05 04:57:09.610140",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "work_type_code",
+  "work_type_name",
+  "technology",
+  "segment",
+  "category",
+  "cb1",
+  "duration_minutes",
+  "sla_hours",
+  "rate",
+  "contractor_rate",
+  "checklist_template",
+  "sec_skills",
+  "required_skills",
+  "sec_kit",
+  "material_kit"
+ ],
+ "fields": [
+  {
+   "fieldname": "work_type_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Código",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "work_type_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nombre",
+   "reqd": 1
+  },
+  {
+   "fieldname": "technology",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Tecnología",
+   "options": "FTTH\nHFC",
+   "reqd": 1
+  },
+  {
+   "fieldname": "segment",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Segmento",
+   "options": "Residencial\nEmpresarial",
+   "reqd": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Categoría",
+   "options": "Instalación\nReparación\nReconectorización\nUpgrade\nTraslado\nDesconexión",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "90",
+   "fieldname": "duration_minutes",
+   "fieldtype": "Int",
+   "label": "Duración estimada (min)",
+   "reqd": 1
+  },
+  {
+   "description": "Si la orden tiene ventana de cita, el vencimiento es el fin de la ventana.",
+   "fieldname": "sla_hours",
+   "fieldtype": "Float",
+   "label": "SLA (horas desde recepción)"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "label": "Tarifa al cliente"
+  },
+  {
+   "fieldname": "checklist_template",
+   "fieldtype": "Link",
+   "label": "Plantilla de checklist",
+   "options": "QSG Plantilla Checklist"
+  },
+  {
+   "fieldname": "sec_skills",
+   "fieldtype": "Section Break",
+   "label": "Habilidades requeridas"
+  },
+  {
+   "fieldname": "required_skills",
+   "fieldtype": "Table MultiSelect",
+   "label": "Habilidades requeridas",
+   "options": "QSG Habilidad Item"
+  },
+  {
+   "fieldname": "sec_kit",
+   "fieldtype": "Section Break",
+   "label": "Kit de materiales"
+  },
+  {
+   "fieldname": "material_kit",
+   "fieldtype": "Table",
+   "label": "Kit de materiales",
+   "options": "QSG Kit Material"
+  },
+  {
+   "fieldname": "contractor_rate",
+   "fieldtype": "Currency",
+   "label": "Pago al contratista"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-05 03:40:00.000000",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Tipo de Trabajo",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "QSG Gerente",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "QSG Despachador",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
+   "role": "QSG Supervisor Contratista",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
+   "role": "QSG Tecnico",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
+   "role": "QSG Bodega",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "work_type_name",
+ "track_changes": 1
+}

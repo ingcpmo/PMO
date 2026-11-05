@@ -1,0 +1,178 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "format:PLAN-{plan_date}-{###}",
+ "creation": "2026-11-05 04:57:10.116218",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "plan_date",
+  "zone",
+  "cb1",
+  "engine",
+  "status",
+  "total_assigned",
+  "total_unassigned",
+  "sec_a",
+  "assignments",
+  "sec_u",
+  "unassigned"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "plan_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Fecha",
+   "reqd": 1
+  },
+  {
+   "fieldname": "zone",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Zona (opcional)",
+   "options": "QSG Zona"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Reglas",
+   "fieldname": "engine",
+   "fieldtype": "Select",
+   "label": "Motor",
+   "options": "Reglas\nVROOM"
+  },
+  {
+   "default": "Borrador",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Estado",
+   "options": "Borrador\nPropuesto\nAprobado",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_assigned",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Asignadas",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_unassigned",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Sin asignar",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_a",
+   "fieldtype": "Section Break",
+   "label": "Asignaciones propuestas"
+  },
+  {
+   "fieldname": "assignments",
+   "fieldtype": "Table",
+   "label": "Asignaciones",
+   "options": "QSG Asignacion"
+  },
+  {
+   "fieldname": "sec_u",
+   "fieldtype": "Section Break",
+   "label": "Órdenes sin asignar"
+  },
+  {
+   "fieldname": "unassigned",
+   "fieldtype": "Table",
+   "label": "Sin asignar",
+   "options": "QSG No Asignada",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-05 03:40:00.000000",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Plan de Despacho",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "QSG Gerente",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "QSG Despachador",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 0
+  },
+  {
+   "role": "QSG Supervisor Contratista",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
+   "role": "QSG Bodega",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

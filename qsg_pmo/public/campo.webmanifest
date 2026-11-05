@@ -1,0 +1,16 @@
+{
+	"name": "QSG PMO Campo",
+	"short_name": "QSG Campo",
+	"start_url": "/campo",
+	"scope": "/",
+	"display": "standalone",
+	"orientation": "portrait",
+	"background_color": "#f4f6f9",
+	"theme_color": "#0b5cab",
+	"lang": "es",
+	"icons": [
+		{"src": "/assets/qsg_pmo/images/qsg-icon.svg", "sizes": "any", "type": "image/svg+xml"},
+		{"src": "/assets/qsg_pmo/images/qsg-icon-192.png", "sizes": "192x192", "type": "image/png"},
+		{"src": "/assets/qsg_pmo/images/qsg-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+	]
+}

@@ -1,0 +1,103 @@
+{
+ "charts": [],
+ "content": "[{\"id\": \"h1\", \"type\": \"header\", \"data\": {\"text\": \"\\u003cspan class=\\\"h4\\\"\\u003e\\u003cb\\u003eOperaci\\u00f3n en tiempo real\\u003c/b\\u003e\\u003c/span\\u003e\", \"col\": 12}}, {\"id\": \"nc0\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ordenes abiertas\", \"col\": 4}}, {\"id\": \"nc1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"SLA en riesgo\", \"col\": 4}}, {\"id\": \"nc2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"SLA vencido\", \"col\": 4}}, {\"id\": \"nc3\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Cuadrillas en campo\", \"col\": 4}}, {\"id\": \"nc4\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Retrabajos abiertos\", \"col\": 4}}, {\"id\": \"h2\", \"type\": \"header\", \"data\": {\"text\": \"\\u003cspan class=\\\"h4\\\"\\u003e\\u003cb\\u003eAccesos\\u003c/b\\u003e\\u003c/span\\u003e\", \"col\": 12}}, {\"id\": \"sc0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"\\u00d3rdenes\", \"col\": 3}}, {\"id\": \"sc1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Agenda de cuadrillas\", \"col\": 3}}, {\"id\": \"sc2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Plan de despacho\", \"col\": 3}}, {\"id\": \"sc3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ocupaci\\u00f3n de cuadrillas\", \"col\": 3}}, {\"id\": \"sc4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Capacidad por contratista\", \"col\": 3}}, {\"id\": \"sc5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Liquidaci\\u00f3n de contratistas\", \"col\": 3}}, {\"id\": \"sc6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Disponibilidad\", \"col\": 3}}, {\"id\": \"sc7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Evaluaci\\u00f3n de contratistas\", \"col\": 3}}]",
+ "creation": "2026-11-05 05:14:25.757098",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "icon": "getting-started",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "QSG PMO",
+ "link_type": "DocType",
+ "links": [],
+ "modified": "2026-11-05 05:14:35.539914",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG PMO",
+ "number_cards": [
+  {
+   "label": "Ordenes abiertas",
+   "number_card_name": "Ordenes abiertas"
+  },
+  {
+   "label": "SLA en riesgo",
+   "number_card_name": "SLA en riesgo"
+  },
+  {
+   "label": "SLA vencido",
+   "number_card_name": "SLA vencido"
+  },
+  {
+   "label": "Cuadrillas en campo",
+   "number_card_name": "Cuadrillas en campo"
+  },
+  {
+   "label": "Retrabajos abiertos",
+   "number_card_name": "Retrabajos abiertos"
+  }
+ ],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 0.0,
+ "shortcuts": [
+  {
+   "doc_view": "List",
+   "label": "\u00d3rdenes",
+   "link_to": "QSG Orden",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "Calendar",
+   "label": "Agenda de cuadrillas",
+   "link_to": "QSG Orden",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "List",
+   "label": "Plan de despacho",
+   "link_to": "QSG Plan de Despacho",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Ocupaci\u00f3n de cuadrillas",
+   "link_to": "Ocupacion de Cuadrillas",
+   "report_ref_doctype": "QSG Cuadrilla",
+   "type": "Report"
+  },
+  {
+   "doc_view": "",
+   "label": "Capacidad por contratista",
+   "link_to": "Capacidad por Contratista",
+   "report_ref_doctype": "QSG Contratista",
+   "type": "Report"
+  },
+  {
+   "doc_view": "",
+   "label": "Liquidaci\u00f3n de contratistas",
+   "link_to": "Liquidacion de Contratistas",
+   "report_ref_doctype": "QSG Orden",
+   "type": "Report"
+  },
+  {
+   "doc_view": "List",
+   "label": "Disponibilidad",
+   "link_to": "QSG Disponibilidad",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "List",
+   "label": "Evaluaci\u00f3n de contratistas",
+   "link_to": "QSG Evaluacion Contratista",
+   "type": "DocType"
+  }
+ ],
+ "standard": 1,
+ "title": "QSG PMO",
+ "type": "Workspace"
+}

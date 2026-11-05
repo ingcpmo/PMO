@@ -1,0 +1,8 @@
+.git
+.github
+research
+docs
+instalacion
+**/__pycache__
+**/*.pyc
+node_modules

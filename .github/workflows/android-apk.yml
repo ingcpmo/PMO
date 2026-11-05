@@ -1,0 +1,57 @@
+# Construye la app Android "QSG Campo" en la nube, sin instalar nada en su PC.
+# GitHub → Actions → "App Android (APK)" → Run workflow → escriba la dirección del servidor.
+# Al terminar, descargue el APK en la sección "Artifacts" de esa ejecución.
+name: App Android (APK)
+
+on:
+  workflow_dispatch:
+    inputs:
+      servidor:
+        description: "Dirección de QSG PMO (ej. http://192.168.1.50:8080 o https://pmo.qsg.pr)"
+        required: true
+        default: "http://192.168.1.50:8080"
+  push:
+    paths:
+      - "instalacion/android/**"
+      - ".github/workflows/android-apk.yml"
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: instalacion/android
+    env:
+      QSG_SERVIDOR: ${{ github.event.inputs.servidor || 'http://192.168.1.50:8080' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      # El Android SDK ya viene instalado en los servidores de GitHub (ANDROID_HOME)
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Configurar servidor
+        run: node preparar.mjs "$QSG_SERVIDOR"
+      - name: Crear proyecto Android
+        run: |
+          npx cap add android
+          npx cap sync android
+          node preparar.mjs --android
+      - name: Compilar APK
+        run: cd android && chmod +x gradlew && ./gradlew --no-daemon assembleDebug
+      - name: Nombrar APK
+        run: |
+          mkdir -p salida
+          cp android/app/build/outputs/apk/debug/app-debug.apk salida/QSG-Campo.apk
+          echo "Servidor: $QSG_SERVIDOR" > salida/LEAME.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QSG-Campo-apk
+          path: instalacion/android/salida/
+          retention-days: 30
