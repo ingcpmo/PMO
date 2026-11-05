@@ -14,6 +14,10 @@ Hay tres niveles de prueba. Puede hacer solo el primero para ver la herramienta 
 
 ### Opción A: con Docker (recomendada, cualquier computadora)
 
+**La forma más simple:** ejecute `instalacion/pc/instalar.bat` (Windows) o `instalacion/pc/instalar.sh` (Mac/Linux). Hace todo lo de abajo automáticamente. Para el celular Android, vea `instalacion/android/README.md`.
+
+Paso a paso, si prefiere hacerlo a mano con frappe_docker:
+
 Requisitos: Docker Desktop (Windows o Mac) o Docker en Linux, 8 GB de RAM libres.
 
 ```bash

@@ -157,6 +157,7 @@ def yo() -> dict:
 		"full_name": frappe.utils.get_fullname(user),
 		"crews": mis_cuadrillas(user),
 		"supervisor": _is_supervisor(),
+		"hoy": nowdate(),
 	}
 
 

@@ -48,7 +48,7 @@
 	function fmtDay(iso) {
 		const d = new Date(iso + "T12:00:00");
 		const s = d.toLocaleDateString("es-PR", { weekday: "long", day: "numeric", month: "short" });
-		return (iso === todayISO() ? "Hoy, " : "") + s;
+		return (iso === (state.today || todayISO()) ? "Hoy, " : "") + s;
 	}
 	const hhmm = (t) => {
 		if (!t) return "";
@@ -129,7 +129,17 @@
 		});
 	}
 
-	function gps() {
+	async function gps() {
+		// En la app Android/iOS (Capacitor) se usa el GPS nativo: funciona también con http:// en la red local
+		const nativeGeo = window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins?.Geolocation;
+		if (nativeGeo) {
+			try {
+				const p = await nativeGeo.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+				return { lat: p.coords.latitude, lng: p.coords.longitude };
+			} catch (e) {
+				return {};
+			}
+		}
 		return new Promise((resolve) => {
 			if (!navigator.geolocation) return resolve({});
 			navigator.geolocation.getCurrentPosition(
@@ -621,5 +631,12 @@
 	if (location.hash) {
 		history.replaceState(null, "", location.pathname);
 	}
-	loadList();
+	// el día lo define el servidor (zona horaria de la operación), no el reloj del teléfono
+	call("yo")
+		.then((me) => {
+			if (me && me.hoy) state.day = me.hoy;
+			state.today = state.day;
+		})
+		.catch(() => {})
+		.finally(loadList);
 })();

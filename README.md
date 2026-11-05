@@ -30,6 +30,10 @@ Los rangos de medición y los códigos de cierre de los datos semilla son **valo
 
 ## Instalación
 
+**Para probar en una PC o en Android, use la carpeta [`instalacion/`](instalacion/)**: `instalacion/pc/instalar.bat` instala todo con Docker y `instalacion/android/` genera la app QSG Campo (APK).
+
+Instalación manual sobre un bench existente:
+
 Requisitos: un bench de Frappe v16 (Python 3.14, Node 24, MariaDB, Redis) con ERPNext v16.
 
 ```bash

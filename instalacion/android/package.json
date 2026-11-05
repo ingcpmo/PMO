@@ -1,0 +1,19 @@
+{
+  "name": "qsg-campo",
+  "version": "0.3.0",
+  "private": true,
+  "description": "App Android de QSG PMO para técnicos de campo (envoltorio Capacitor de /campo)",
+  "type": "module",
+  "scripts": {
+    "preparar": "node preparar.mjs",
+    "apk": "node preparar.mjs --android && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/geolocation": "8.2.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}
