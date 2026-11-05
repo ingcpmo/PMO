@@ -22,6 +22,8 @@ class QSGOrden(Document):
 		self.detect_rework()
 
 	def validate(self):
+		self.protect_closed_order()
+		self.protect_history()
 		self.validate_unique_external_id()
 		self.sync_contractor()
 		self.load_checklist()
@@ -36,6 +38,61 @@ class QSGOrden(Document):
 	def on_update(self):
 		if self.has_value_changed("status") and self.status == "Completada":
 			self.create_stock_issue()
+
+	# ------------------------------------------------------------------ integridad
+	def protect_closed_order(self):
+		"""Una orden cerrada no se modifica, salvo reprogramar una visita fallida.
+
+		Gerencia puede corregirla (queda registrado); nadie más.
+		"""
+		if self.is_new() or self.flags.ignore_closed_lock:
+			return
+		before = self.get_doc_before_save()
+		if not before or before.status not in CLOSED_STATUSES:
+			return
+		if before.status == "No completada" and self.status == "Reprogramada":
+			return
+		from qsg_pmo.seguridad.eventos import denegar, registrar
+
+		roles = set(frappe.get_roles())
+		if roles & {"System Manager", "QSG Gerente"} or frappe.session.user == "Administrator":
+			registrar(
+				"Intento de alterar orden cerrada",
+				f"Corrección de gerencia sobre orden {before.status}",
+				"QSG Orden",
+				self.name,
+				severity="Media",
+			)
+			return
+		denegar(
+			_("La orden está cerrada ({0}) y no se puede modificar.").format(before.status),
+			f"intento de modificar orden {before.status}",
+			"QSG Orden",
+			self.name,
+			event_type="Intento de alterar orden cerrada",
+		)
+
+	def protect_history(self):
+		"""El historial solo crece: no se pueden editar ni borrar eventos anteriores."""
+		if self.is_new():
+			return
+		before = self.get_doc_before_save()
+		if not before:
+			return
+		current = {e.name: e for e in self.events}
+		fields = ("event_time", "event_type", "from_value", "to_value", "reason", "user")
+		for old in before.events:
+			new = current.get(old.name)
+			if not new or any(str(old.get(f) or "") != str(new.get(f) or "") for f in fields):
+				from qsg_pmo.seguridad.eventos import denegar
+
+				denegar(
+					_("El historial de la orden no se puede modificar."),
+					"intento de editar o borrar el historial",
+					"QSG Orden",
+					self.name,
+					event_type="Intento de alterar orden cerrada",
+				)
 
 	# ------------------------------------------------------------------ recepción
 	def validate_unique_external_id(self):
@@ -158,7 +215,17 @@ class QSGOrden(Document):
 		)
 		limit = frappe.db.get_single_value("QSG Configuracion", "geofence_meters") or 300
 		self.arrival_distance_m = round(meters)
+		was_out = self.arrival_out_of_range
 		self.arrival_out_of_range = 1 if meters > limit else 0
+		if self.arrival_out_of_range and not was_out:
+			from qsg_pmo.seguridad.eventos import registrar
+
+			registrar(
+				"Llegada fuera de rango",
+				f"Llegada registrada a {round(meters)} m de la dirección (límite {limit} m)",
+				"QSG Orden",
+				self.name,
+			)
 
 	def log_changes(self):
 		if self.is_new():

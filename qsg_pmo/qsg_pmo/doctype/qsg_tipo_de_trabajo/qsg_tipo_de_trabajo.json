@@ -28,7 +28,7 @@
    "fieldname": "work_type_code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "C\u00f3digo",
+   "label": "Código",
    "reqd": 1,
    "unique": 1
   },
@@ -44,7 +44,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Tecnolog\u00eda",
+   "label": "Tecnología",
    "options": "FTTH\nHFC",
    "reqd": 1
   },
@@ -62,8 +62,8 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Categor\u00eda",
-   "options": "Instalaci\u00f3n\nReparaci\u00f3n\nReconectorizaci\u00f3n\nUpgrade\nTraslado\nDesconexi\u00f3n",
+   "label": "Categoría",
+   "options": "Instalación\nReparación\nReconectorización\nUpgrade\nTraslado\nDesconexión",
    "reqd": 1
   },
   {
@@ -74,14 +74,14 @@
    "default": "90",
    "fieldname": "duration_minutes",
    "fieldtype": "Int",
-   "label": "Duraci\u00f3n estimada (min)",
+   "label": "Duración estimada (min)",
    "reqd": 1
   },
   {
    "description": "Si la orden tiene ventana de cita, el vencimiento es el fin de la ventana.",
    "fieldname": "sla_hours",
    "fieldtype": "Float",
-   "label": "SLA (horas desde recepci\u00f3n)"
+   "label": "SLA (horas desde recepción)"
   },
   {
    "fieldname": "rate",
@@ -125,7 +125,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-05 05:08:42.261184",
+ "modified": "2026-11-05 03:40:00.000000",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Tipo de Trabajo",
@@ -133,76 +133,82 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
    "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
    "create": 1,
    "delete": 1,
-   "email": 1,
+   "report": 1,
    "export": 1,
    "print": 1,
-   "read": 1,
-   "report": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
    "role": "QSG Gerente",
-   "share": 1,
-   "write": 1
-  },
-  {
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
    "create": 1,
    "delete": 1,
-   "email": 1,
+   "report": 1,
    "export": 1,
    "print": 1,
-   "read": 1,
-   "report": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
    "role": "QSG Despachador",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
    "export": 1,
    "print": 1,
-   "read": 1,
-   "report": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
    "role": "QSG Supervisor Contratista",
-   "share": 1,
-   "write": 1
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
   },
   {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
    "role": "QSG Tecnico",
-   "share": 1,
-   "write": 1
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
   },
   {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
    "role": "QSG Bodega",
-   "share": 1,
-   "write": 1
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
   }
  ],
  "row_format": "Dynamic",
@@ -211,5 +217,6 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "work_type_name"
+ "title_field": "work_type_name",
+ "track_changes": 1
 }

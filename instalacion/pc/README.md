@@ -18,7 +18,7 @@ Instala el servidor completo de QSG PMO (ERPNext v16 + QSG PMO) en su computador
 
 La primera vez tarda entre 10 y 20 minutos (descarga ERPNext, crea la base de datos y carga la demostración). Al terminar abre el navegador y muestra:
 
-- **Oficina**: `http://localhost:8080`, usuario `Administrator`, contraseña `admin`.
+- **Oficina**: `http://localhost:8080`, usuario `Administrator` y la contraseña que muestra el instalador. Cada instalación genera sus propias contraseñas (administrador y base de datos) y las guarda en `instalacion/pc/.env`, que no se sube a GitHub. Guárdelas en un lugar seguro.
   La primera vez aparece el asistente de ERPNext: elija **Español**, país **Puerto Rico**, zona horaria **America/Puerto_Rico**, moneda **USD** y el nombre de la empresa (QSG). Esto crea la compañía y las bodegas que usa QSG PMO.
 - **Celular** (misma Wi-Fi): `http://<IP-de-la-PC>:8080/campo`, técnico `tecnico@qsg.pr`, contraseña `Campo2026!`.
 
@@ -30,15 +30,16 @@ Si Windows pregunta por el **Firewall**, permita el acceso en redes privadas; si
 |---|---|
 | `detener.bat` / `detener.sh` | Apaga QSG PMO. Los datos se conservan. Vuelva a arrancar con `instalar`. |
 | `actualizar.bat` / `actualizar.sh` | Trae la última versión de GitHub, reconstruye y migra la base de datos. |
-| `pruebas.bat` / `pruebas.sh` | Corre las 25 pruebas automáticas en un sitio aparte, sin tocar sus datos. |
-| `desinstalar.bat` / `desinstalar.sh` | Borra QSG PMO y **todos sus datos** de la PC (pide confirmación). |
+| `pruebas.bat` / `pruebas.sh` | Corre las 43 pruebas automáticas en un sitio aparte, sin tocar sus datos. |
+| `desinstalar.bat` / `desinstalar.sh` | Borra QSG PMO, **todos sus datos** y el archivo `.env` de la PC (pide confirmación). |
 | `docker-compose.yml`, `Dockerfile` | Configuración de los servicios. No hace falta editarlos. |
 
 ## Opciones
 
 - **Otro puerto**: si el 8080 está ocupado, en Windows `set PUERTO=8090` y luego `instalar.bat`; en Mac/Linux `PUERTO=8090 ./instalar.sh`.
 - **Sin demostración**: `CARGAR_DEMO=0` antes de instalar.
-- **Otra contraseña de administrador**: `ADMIN_PASSWORD=...` antes de la primera instalación.
+- **Elegir la contraseña de administrador**: `ADMIN_PASSWORD=...` antes de la primera instalación (si no, se genera una al azar).
+- **Seguridad**: el instalador deja activos el bloqueo por intentos fallidos, la política de contraseñas y el módulo de seguridad. Vea `docs/seguridad.md` y el reporte *Estado de Seguridad* en el escritorio.
 
 ## Si algo falla
 

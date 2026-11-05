@@ -7,6 +7,8 @@
 
 	const API = "/api/method/qsg_pmo.api.";
 	const $app = document.getElementById("app");
+	// El token CSRF viene en un atributo (la política CSP de /campo no permite scripts en línea)
+	window.QSG_CSRF = $app.dataset.csrf;
 	const state = {
 		user: $app.dataset.user,
 		name: $app.dataset.name,
@@ -96,11 +98,9 @@
 	async function uploadPhoto(file, order) {
 		const blob = await shrink(file);
 		const fd = new FormData();
-		fd.append("file", blob, (file.name || "foto").replace(/\.\w+$/, "") + ".jpg");
-		fd.append("doctype", "QSG Orden");
-		fd.append("docname", order);
-		fd.append("is_private", "1");
-		const res = await fetch("/api/method/upload_file", {
+		fd.append("file", blob, "foto.jpg");
+		fd.append("name", order);
+		const res = await fetch(API + "subir_foto", {
 			method: "POST",
 			headers: { "X-Frappe-CSRF-Token": window.QSG_CSRF, Accept: "application/json" },
 			body: fd,

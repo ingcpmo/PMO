@@ -246,6 +246,18 @@ def before_install():
 def after_install():
 	create_roles()
 	seed()
+	aplicar_seguridad()
+
+
+def after_migrate():
+	create_roles()
+	aplicar_seguridad()
+
+
+def aplicar_seguridad():
+	from qsg_pmo.seguridad.endurecimiento import aplicar
+
+	aplicar()
 
 
 def create_roles():

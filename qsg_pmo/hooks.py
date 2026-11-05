@@ -292,10 +292,33 @@ scheduler_events = {
 	},
 }
 
-# Un técnico solo ve las órdenes de sus cuadrillas
+after_migrate = "qsg_pmo.install.after_migrate"
+
+# --- Seguridad (qsg_pmo/seguridad) ---
+# Permisos por fila: técnico → sus cuadrillas; supervisor → su contratista
 permission_query_conditions = {
 	"QSG Orden": "qsg_pmo.permissions.orden_query_conditions",
+	"QSG Contratista": "qsg_pmo.permissions.contratista_query_conditions",
+	"QSG Cuadrilla": "qsg_pmo.permissions.cuadrilla_query_conditions",
+	"QSG Disponibilidad": "qsg_pmo.permissions.disponibilidad_query_conditions",
+	"QSG Encuesta": "qsg_pmo.permissions.encuesta_query_conditions",
+	"QSG Evaluacion Contratista": "qsg_pmo.permissions.evaluacion_query_conditions",
 }
 has_permission = {
 	"QSG Orden": "qsg_pmo.permissions.orden_has_permission",
+	"QSG Contratista": "qsg_pmo.permissions.contratista_has_permission",
+	"QSG Cuadrilla": "qsg_pmo.permissions.cuadrilla_has_permission",
+	"QSG Disponibilidad": "qsg_pmo.permissions.disponibilidad_has_permission",
+	"QSG Encuesta": "qsg_pmo.permissions.encuesta_has_permission",
+	"QSG Evaluacion Contratista": "qsg_pmo.permissions.evaluacion_has_permission",
 }
+
+# Solo imágenes reales y de tamaño acotado en los adjuntos de QSG
+doc_events = {
+	"File": {"before_insert": ["qsg_pmo.seguridad.archivos.on_file_insert"]},
+}
+# ... y se revisan antes de que Frappe toque el contenido
+override_doctype_class = {"File": "qsg_pmo.seguridad.archivos.ArchivoQSG"}
+
+# Cabeceras de seguridad y registro de eventos al final de cada petición
+after_request = ["qsg_pmo.seguridad.cabeceras.after_request"]

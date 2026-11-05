@@ -7,6 +7,6 @@ if not "%R%"=="BORRAR" (
   pause
   exit /b 0
 )
-docker compose down -v
+docker compose down -v && del .env
 echo QSG PMO eliminado.
 pause

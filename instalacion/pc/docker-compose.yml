@@ -20,8 +20,8 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: "3306"
-      MYSQL_ROOT_PASSWORD: admin
-      MARIADB_ROOT_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Falta el archivo .env - ejecute instalar}"
+      MARIADB_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Falta el archivo .env - ejecute instalar}"
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -66,7 +66,8 @@ services:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
     environment:
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:?Falta el archivo .env - ejecute instalar}"
+      DB_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Falta el archivo .env - ejecute instalar}"
       CARGAR_DEMO: ${CARGAR_DEMO:-1}
     entrypoint:
       - bash
@@ -92,8 +93,10 @@ services:
         if [ -d "sites/frontend" ]; then
           echo "Site frontend already exists, skipping creation";
         else
-          bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=admin --install-app erpnext --install-app qsg_pmo --set-default frontend;
+          bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$DB_ROOT_PASSWORD --install-app erpnext --install-app qsg_pmo --set-default frontend;
           bench --site frontend execute frappe.db.set_single_value --args '["System Settings", "time_zone", "America/Puerto_Rico"]';
+          bench --site frontend execute frappe.utils.password.get_encryption_key;
+          bench --site frontend enable-scheduler;
           if [ "$$CARGAR_DEMO" = "1" ]; then bench --site frontend execute qsg_pmo.demo.crear; fi;
         fi;
         if ! bench --site frontend list-apps | grep -q qsg_pmo; then bench --site frontend install-app qsg_pmo; fi;
@@ -117,8 +120,8 @@ services:
       - --skip-character-set-client-handshake
       - --innodb-snapshot-isolation=OFF
     environment:
-      MYSQL_ROOT_PASSWORD: admin
-      MARIADB_ROOT_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Falta el archivo .env - ejecute instalar}"
+      MARIADB_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Falta el archivo .env - ejecute instalar}"
     volumes:
       - db-data:/var/lib/mysql
 

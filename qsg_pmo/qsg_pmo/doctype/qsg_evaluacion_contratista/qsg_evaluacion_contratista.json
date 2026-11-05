@@ -62,19 +62,19 @@
    "fieldname": "grade",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Categor\u00eda",
+   "label": "Categoría",
    "options": "\nA\nB\nC",
    "read_only": 1
   },
   {
    "fieldname": "sec_m",
    "fieldtype": "Section Break",
-   "label": "M\u00e9tricas"
+   "label": "Métricas"
   },
   {
    "fieldname": "orders_total",
    "fieldtype": "Int",
-   "label": "\u00d3rdenes cerradas",
+   "label": "Órdenes cerradas",
    "read_only": 1
   },
   {
@@ -108,14 +108,14 @@
   {
    "fieldname": "avg_rating",
    "fieldtype": "Float",
-   "label": "Satisfacci\u00f3n promedio (1\u20135)",
+   "label": "Satisfacción promedio (1–5)",
    "precision": "2",
    "read_only": 1
   },
   {
    "fieldname": "rework_count",
    "fieldtype": "Int",
-   "label": "Retrabajos en garant\u00eda",
+   "label": "Retrabajos en garantía",
    "read_only": 1
   },
   {
@@ -128,7 +128,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-05 05:08:42.576302",
+ "modified": "2026-11-05 03:40:00.000000",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Evaluacion Contratista",
@@ -136,57 +136,62 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
    "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
    "create": 1,
    "delete": 1,
-   "email": 1,
+   "report": 1,
    "export": 1,
    "print": 1,
-   "read": 1,
-   "report": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
    "role": "QSG Gerente",
-   "share": 1,
-   "write": 1
-  },
-  {
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
    "create": 1,
    "delete": 1,
-   "email": 1,
+   "report": 1,
    "export": 1,
    "print": 1,
-   "read": 1,
-   "report": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
    "role": "QSG Despachador",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
    "export": 1,
    "print": 1,
-   "read": 1,
-   "report": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
    "role": "QSG Supervisor Contratista",
-   "share": 1,
-   "write": 1
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
   }
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

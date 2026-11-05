@@ -27,7 +27,13 @@
   "cb_score",
   "w_evidence",
   "w_rating",
-  "w_rework"
+  "w_rework",
+  "sec_seguridad",
+  "rate_limit_per_minute",
+  "max_photo_mb",
+  "require_2fa_managers",
+  "cb_seguridad",
+  "integration_allowed_ips"
  ],
  "fields": [
   {
@@ -51,7 +57,7 @@
   {
    "fieldname": "sec_eng",
    "fieldtype": "Section Break",
-   "label": "Motor de asignaci\u00f3n"
+   "label": "Motor de asignación"
   },
   {
    "default": "35",
@@ -69,13 +75,13 @@
    "default": "10",
    "fieldname": "load_penalty_minutes",
    "fieldtype": "Float",
-   "label": "Penalizaci\u00f3n por carga (min por orden)"
+   "label": "Penalización por carga (min por orden)"
   },
   {
    "default": "15",
    "fieldname": "zone_bonus_minutes",
    "fieldtype": "Float",
-   "label": "Bonificaci\u00f3n por misma zona (min)"
+   "label": "Bonificación por misma zona (min)"
   },
   {
    "fieldname": "cb_eng",
@@ -94,7 +100,7 @@
   {
    "fieldname": "sec_score",
    "fieldtype": "Section Break",
-   "label": "Pesos de evaluaci\u00f3n de contratistas (%)"
+   "label": "Pesos de evaluación de contratistas (%)"
   },
   {
    "default": "20",
@@ -128,73 +134,111 @@
    "default": "15",
    "fieldname": "w_rating",
    "fieldtype": "Percent",
-   "label": "Satisfacci\u00f3n del cliente"
+   "label": "Satisfacción del cliente"
   },
   {
    "default": "30",
    "fieldname": "warranty_days",
    "fieldtype": "Int",
-   "label": "D\u00edas de garant\u00eda (retrabajo)"
+   "label": "Días de garantía (retrabajo)"
   },
   {
    "default": "300",
    "fieldname": "geofence_meters",
    "fieldtype": "Int",
-   "label": "Per\u00edmetro de llegada (m)"
+   "label": "Perímetro de llegada (m)"
   },
   {
    "default": "10",
    "fieldname": "grade_a_bonus_minutes",
    "fieldtype": "Float",
-   "label": "Bonificaci\u00f3n contratista A (min)"
+   "label": "Bonificación contratista A (min)"
   },
   {
    "default": "15",
    "fieldname": "grade_c_penalty_minutes",
    "fieldtype": "Float",
-   "label": "Penalizaci\u00f3n contratista C (min)"
+   "label": "Penalización contratista C (min)"
   },
   {
    "default": "10",
    "fieldname": "w_rework",
    "fieldtype": "Percent",
    "label": "Sin retrabajo"
+  },
+  {
+   "fieldname": "sec_seguridad",
+   "fieldtype": "Section Break",
+   "label": "Seguridad"
+  },
+  {
+   "fieldname": "rate_limit_per_minute",
+   "fieldtype": "Int",
+   "label": "Peticiones por minuto por usuario",
+   "default": "120",
+   "description": "Límite por usuario y método de la API. Al superarlo responde «Demasiadas peticiones» y queda registrado."
+  },
+  {
+   "fieldname": "max_photo_mb",
+   "fieldtype": "Int",
+   "label": "Tamaño máximo de foto (MB)",
+   "default": "10"
+  },
+  {
+   "fieldname": "require_2fa_managers",
+   "fieldtype": "Check",
+   "label": "Exigir doble factor a gerencia y despacho",
+   "default": "0",
+   "description": "Pide un código adicional al entrar a System Manager, QSG Gerente y QSG Despachador. Se aplica al guardar."
+  },
+  {
+   "fieldname": "cb_seguridad",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "integration_allowed_ips",
+   "fieldtype": "Small Text",
+   "label": "IPs permitidas para la integración",
+   "description": "IPs o redes (una por línea, ej. 203.0.113.10 o 203.0.113.0/24) desde donde Liberty puede enviar órdenes. Vacío = cualquier IP con token válido."
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-05 05:08:42.717541",
+ "modified": "2026-11-05 03:40:00.000000",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Configuracion",
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
    "role": "System Manager",
-   "share": 1,
-   "write": 1
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 0,
+   "delete": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
   },
   {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
    "role": "QSG Gerente",
-   "share": 1,
-   "write": 1
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 0,
+   "delete": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
   }
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

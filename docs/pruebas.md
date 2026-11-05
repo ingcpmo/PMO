@@ -5,7 +5,7 @@ Hay tres niveles de prueba. Puede hacer solo el primero para ver la herramienta 
 | Nivel | Qué prueba | Tiempo |
 |---|---|---|
 | 1. Probar la aplicación | Las pantallas de escritorio y la app del técnico en su celular, con datos de demostración | 30–60 min la primera vez |
-| 2. Probar el código | Las 25 pruebas automáticas (motor, SLA, flujo completo, API y permisos) | 2 min |
+| 2. Probar el código | Las 43 pruebas automáticas (motor, SLA, flujo completo, API, permisos y seguridad) | 2 min |
 | 3. Probar en campo | Un técnico real con su celular, GPS y cámara, sobre un servidor con HTTPS | medio día |
 
 ---

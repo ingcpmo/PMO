@@ -33,7 +33,7 @@
    "fieldname": "crew_code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "C\u00f3digo de cuadrilla",
+   "label": "Código de cuadrilla",
    "reqd": 1,
    "unique": 1
   },
@@ -50,7 +50,7 @@
    "fieldname": "leader_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "L\u00edder"
+   "label": "Líder"
   },
   {
    "default": "1",
@@ -74,13 +74,13 @@
   {
    "fieldname": "warehouse",
    "fieldtype": "Link",
-   "label": "Almac\u00e9n (cami\u00f3n)",
+   "label": "Almacén (camión)",
    "options": "Warehouse"
   },
   {
    "fieldname": "vehicle_plate",
    "fieldtype": "Data",
-   "label": "Tablilla del veh\u00edculo"
+   "label": "Tablilla del vehículo"
   },
   {
    "fieldname": "sec_skills",
@@ -97,7 +97,7 @@
    "default": "6",
    "fieldname": "max_orders_per_day",
    "fieldtype": "Int",
-   "label": "M\u00e1ximo de \u00f3rdenes por d\u00eda"
+   "label": "Máximo de órdenes por día"
   },
   {
    "fieldname": "cb2",
@@ -151,7 +151,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-05 04:57:09.259237",
+ "modified": "2026-11-05 03:40:00.000000",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Cuadrilla",
@@ -159,81 +159,75 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
    "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
    "create": 1,
    "delete": 1,
-   "email": 1,
+   "report": 1,
    "export": 1,
    "print": 1,
-   "read": 1,
-   "report": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
    "role": "QSG Gerente",
-   "share": 1,
-   "write": 1
-  },
-  {
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
    "create": 1,
    "delete": 1,
-   "email": 1,
+   "report": 1,
    "export": 1,
    "print": 1,
-   "read": 1,
-   "report": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
    "role": "QSG Despachador",
-   "share": 1,
-   "write": 1
-  },
-  {
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
    "create": 1,
-   "delete": 1,
-   "email": 1,
+   "delete": 0,
+   "report": 1,
    "export": 1,
    "print": 1,
-   "read": 1,
-   "report": 1,
+   "email": 1,
+   "share": 0
+  },
+  {
    "role": "QSG Supervisor Contratista",
-   "share": 1,
-   "write": 1
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 1,
+   "share": 0
   },
   {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "QSG Tecnico",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
    "role": "QSG Bodega",
-   "share": 1,
-   "write": 1
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 0,
+   "print": 1,
+   "email": 0,
+   "share": 0
   }
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

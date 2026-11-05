@@ -17,9 +17,20 @@ Cree un usuario de integración solo con el rol **QSG Despachador** para Liberty
 
 ## Permisos
 
-- Un usuario con rol **QSG Tecnico** (y ningún rol de gestión) solo ve las órdenes de las cuadrillas en las que figura como miembro (*QSG Cuadrilla → Miembros → Usuario*). Aplica en el escritorio, en la API REST y en la app de campo.
-- `recibir_orden` requiere QSG Despachador, QSG Gerente o System Manager.
+- Un usuario con rol **QSG Tecnico** (y ningún rol de gestión) solo ve las órdenes de las cuadrillas en las que figura como miembro (*QSG Cuadrilla → Miembros → Usuario*). Aplica en el escritorio, en la API REST y en la app de campo. Por REST solo puede **leer**: todo cambio pasa por la API de campo, que valida cada paso.
+- Un **QSG Supervisor Contratista** solo ve y opera lo de su contratista, según sus *User Permission* de QSG Contratista. Sin ninguno, no ve nada.
+- `recibir_orden` requiere QSG Despachador, QSG Gerente o System Manager, y opcionalmente una IP permitida (*QSG Configuracion → IPs permitidas para la integración*).
 - `resumen` requiere un rol de gestión.
+
+## Límites y errores
+
+| HTTP | Cuándo |
+|---|---|
+| 403 | Sin sesión, sin permiso, orden de otra cuadrilla o contratista, IP no permitida. |
+| 417 | Dato inválido (GPS imposible, firma que no es PNG, foto que no es de la orden, archivo que no es imagen) o regla de negocio (faltan pasos obligatorios, orden cerrada). |
+| 429 | Más de 120 peticiones por minuto a un mismo método (la integración tiene 600). Se configura en *QSG Configuracion*. |
+
+Tras 5 contraseñas erróneas seguidas, el usuario y la IP quedan bloqueados 10 minutos. Cada rechazo queda en *QSG Evento Seguridad*. Detalle en [seguridad.md](seguridad.md).
 
 ## API de campo
 
@@ -32,16 +43,17 @@ Base: `https://<servidor>/api/method/qsg_pmo.api.`
 | `orden` | GET | `name` | detalle completo: datos de red, checklist, materiales, kit, historial |
 | `codigos_cierre` | GET | — | códigos con su resultado (Completada / No completada) y causa |
 | `cambiar_estado` | POST | `name`, `estado` (`En ruta` o `En sitio`), `lat`, `lng` | la orden actualizada; en `En sitio` calcula la distancia a la dirección |
-| `guardar_checklist` | POST | `name`, `filas` = `[{"name": fila, "value": "...", "photo": "/private/files/..."}]` | la orden con el cumplimiento de cada paso |
+| `subir_foto` | POST (multipart) | `name`, `file` (JPG, PNG, WEBP o HEIC, hasta 10 MB) | `file_url` de la foto, privada y adjunta a la orden |
+| `guardar_checklist` | POST | `name`, `filas` = `[{"name": fila, "value": "...", "photo": "<file_url de subir_foto>"}]` | la orden con el cumplimiento de cada paso |
 | `cerrar` | POST | `name`, `codigo`, `notas`, `firma` (data URL PNG), `materiales` = `[{"item","qty","serial_no"}]`, `lat`, `lng` | la orden cerrada; aplica las mismas reglas del escritorio |
 
-Las fotos se suben primero con el método estándar de Frappe y luego se guardan en la fila:
+Las fotos se suben primero con `subir_foto` y luego se guardan en la fila con el `file_url` que devuelve. Solo se acepta una foto subida a esa misma orden; se revisa el contenido real del archivo, no su nombre.
 
 ```bash
-curl -X POST https://<servidor>/api/method/upload_file \
-  -H "Authorization: token KEY:SECRET" \
-  -F file=@cto-antes.jpg -F doctype="QSG Orden" -F docname=QSG-ORD-2026-00002 -F is_private=1
-# → {"message": {"file_url": "/private/files/cto-antes.jpg", ...}}
+curl -b c.txt -X POST https://<servidor>/api/method/qsg_pmo.api.subir_foto \
+  -H "X-Frappe-CSRF-Token: <token>" \
+  -F name=QSG-ORD-2026-00002 -F file=@cto-antes.jpg
+# → {"message": {"file_url": "/private/files/QSG-ORD-2026-00002-3f9a1c.jpg", ...}}
 ```
 
 ### Ejemplo: un día del técnico
@@ -64,11 +76,11 @@ Errores: HTTP 417 con el mensaje en `_server_messages` (por ejemplo, *«No se pu
 
 | Método | HTTP | Parámetros | Devuelve |
 |---|---|---|---|
-| `recibir_orden` | POST | `customer` (opcional si hay cliente por defecto en *QSG Configuracion*), `external_order_id` y cualquier campo de *QSG Orden* (`work_type`, `subscriber_name`, `account_number`, `phone`, `address`, `municipality`, `zone`, `latitude`, `longitude`, `appointment_date`, `window_start`, `window_end`, `priority`, `hfc_node`, `olt`, `pon_port`, `splitter_cto`…) | `{name, status, created, sla_due}` |
+| `recibir_orden` | POST | `customer` (opcional si hay cliente por defecto en *QSG Configuracion*), `external_order_id` y los campos de recepción de *QSG Orden* (`work_type`, `subscriber_name`, `account_number`, `phone`, `address`, `municipality`, `zone`, `latitude`, `longitude`, `appointment_date`, `window_start`, `window_end`, `priority`, `hfc_node`, `olt`, `pon_port`, `splitter_cto`…) | `{name, status, created, sla_due}` |
 | `estado_orden` | GET | `external_order_id`, `customer` | estado, SLA, ventana, contratista, cuadrilla, llegada estimada, cierre, retrabajo |
 | `resumen` | GET | `fecha` | contadores del tablero: abiertas, SLA en riesgo, SLA vencido, en campo, programadas y completadas del día, retrabajos |
 
-`recibir_orden` es idempotente: si la orden ya existe (mismo cliente y número), la actualiza mientras siga en *Recibida*, *Asignada a contratista* o *Reprogramada*; si ya está en campo o cerrada, responde con error. No permite tocar estado, cuadrilla, contratista ni cierre.
+`recibir_orden` es idempotente: si la orden ya existe (mismo cliente y número), la actualiza mientras siga en *Recibida*, *Asignada a contratista* o *Reprogramada*; si ya está en campo o cerrada, responde con error. Ignora cualquier otro campo (estado, cuadrilla, contratista, cierre, calificación, retrabajo) y limpia el HTML de los textos.
 
 ```bash
 curl -X POST https://pmo.qsg.pr/api/method/qsg_pmo.api.recibir_orden \

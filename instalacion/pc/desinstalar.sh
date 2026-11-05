@@ -3,4 +3,4 @@
 cd "$(dirname "$0")"
 read -r -p "Esto borra todos los datos de QSG PMO en esta PC. Escriba BORRAR para continuar: " r
 [ "$r" = "BORRAR" ] || { echo "Cancelado."; exit 0; }
-docker compose down -v && echo "QSG PMO eliminado."
+docker compose down -v && rm -f .env && echo "QSG PMO eliminado."

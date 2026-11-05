@@ -11,6 +11,34 @@ from qsg_pmo.tests.test_flujo import CAGUAS, SAN_JUAN, ensure_customer, make_cre
 TECH = "tecnico.api@qsg.test"
 
 
+def _jpeg() -> bytes:
+	import io
+
+	from PIL import Image
+
+	buf = io.BytesIO()
+	Image.new("RGB", (8, 8), (200, 30, 30)).save(buf, "JPEG")
+	return buf.getvalue()
+
+
+JPEG = _jpeg()
+
+
+def attach_photo(order_name, file_name="evidencia.jpg"):
+	"""Foto real (firma JPEG) adjunta a la orden, como la sube la app."""
+	f = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": file_name,
+			"attached_to_doctype": "QSG Orden",
+			"attached_to_name": order_name,
+			"is_private": 1,
+			"content": JPEG,
+		}
+	).insert(ignore_permissions=True)
+	return f.file_url
+
+
 def ensure_user(email, role):
 	if not frappe.db.exists("User", email):
 		u = frappe.get_doc(
@@ -60,6 +88,7 @@ class TestApiCampo(IntegrationTestCase):
 
 	def test_flujo_del_tecnico(self):
 		o = self._order("API-003", "T-API-1")
+		photo = attach_photo(o.name)
 		frappe.set_user(TECH)
 		data = api.cambiar_estado(o.name, "En ruta")
 		self.assertEqual(data["status"], "En ruta")
@@ -73,7 +102,7 @@ class TestApiCampo(IntegrationTestCase):
 		filas = []
 		for r in data["checklist"]:
 			if r["item_type"] == "Foto":
-				filas.append({"name": r["name"], "photo": "/private/files/prueba.jpg"})
+				filas.append({"name": r["name"], "photo": photo})
 			elif r["item_type"] == "Sí/No":
 				filas.append({"name": r["name"], "value": "Sí"})
 			elif r["item_type"] == "Medición":
