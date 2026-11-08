@@ -1,6 +1,8 @@
 // Prepara la app Android "QSG Campo".
 //   node preparar.mjs http://192.168.1.50:8080   -> escribe capacitor.config.json con ese servidor
 //   node preparar.mjs --android                  -> ajusta permisos e iconos del proyecto android/
+//   node preparar.mjs --preguntar                -> APK de descarga directa: pide la dirección del
+//                                                   servidor la primera vez que se abre y la recuerda
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +12,8 @@ const arg = process.argv[2] || process.env.QSG_SERVIDOR || "";
 
 if (arg === "--android") {
 	patchAndroid();
+} else if (arg === "--preguntar") {
+	writeConfigPreguntar();
 } else {
 	writeConfig(arg);
 }
@@ -46,6 +50,28 @@ function writeConfig(raw) {
 	if (url.protocol === "http:") {
 		console.log("Aviso: con http:// la conexión no va cifrada. Úselo solo para pruebas en la red local.");
 	}
+}
+
+function writeConfigPreguntar() {
+	// Servidores que la app abre dentro de ella (con GPS y cámara) cuando la dirección se escribe al
+	// abrirla: GitHub Codespaces (y su inicio de sesión para puertos privados) y la red local. Otra
+	// dirección se abre en el navegador; para un dominio propio, construya el APK con esa dirección.
+	const permitidos = ["*.app.github.dev", "github.com", "192.168.*.*", "10.*.*.*", "172.*.*.*"];
+	const config = {
+		appId: "pr.qsg.campo",
+		appName: "QSG Campo",
+		webDir: "www",
+		server: {
+			cleartext: true,
+			allowNavigation: permitidos,
+			errorPath: "index.html",
+		},
+		android: { backgroundColor: "#0b5cab" },
+		plugins: {},
+	};
+	fs.writeFileSync(path.join(here, "capacitor.config.json"), JSON.stringify(config, null, "\t") + "\n");
+	fs.writeFileSync(path.join(here, "www", "servidor.js"), "window.QSG_SERVIDOR = \"\";\n");
+	console.log("APK de descarga directa: pedirá la dirección del servidor la primera vez que se abra.");
 }
 
 function patchAndroid() {

@@ -25,14 +25,22 @@ pestaña **Ports** → puerto **8080 (QSG PMO)** → clic en el globo.
 
 Mientras tanto, abra `/campo` como tecnico@qsg.pr (cuadrilla CUA-FTTH-01) en otra ventana o en el celular para ver cómo cambian sus órdenes.
 
+## Su propia cuenta
+
+Para entrar con su correo (rol de gerencia: tablero, escritorio y app de campo), ejecute en la terminal:
+
+```bash
+bash .devcontainer/crear-cuenta.sh su-correo@ejemplo.com
+```
+
+La contraseña aparece en la terminal; cada vez que lo ejecute genera una nueva. Si al crear el Codespace llenó el secreto opcional **QSG_CORREO**, la cuenta ya se creó sola y su contraseña está al final del arranque.
+
 ## Verla en el celular (Android o iPhone)
 
-El puerto es **privado**: solo usted lo abre, con su sesión de GitHub. Para el celular:
+El puerto es **privado**: solo usted lo abre, con su sesión de GitHub. Para el celular, en la pestaña **Ports**: clic derecho en 8080 → **Port Visibility → Public** (cualquiera con la dirección podrá ver la página de inicio de sesión; vuelva a *Private* al terminar). También puede dejarlo privado e iniciar sesión en GitHub en el celular.
 
-- Inicie sesión en GitHub en el navegador del celular y abra la misma dirección, o
-- en la pestaña **Ports**, clic derecho en 8080 → **Port Visibility → Public** (cualquiera con la dirección podrá ver la página de inicio de sesión; vuelva a *Private* al terminar).
-
-En Chrome de Android: menú ⋮ → **Agregar a la pantalla principal** sobre `/campo`, y queda como app.
+- **App de Android:** descargue **[QSG-Campo.apk](https://github.com/ingcpmo/PMO/releases/download/qsg-campo-android/QSG-Campo.apk)** en el celular, instálelo y, al abrirlo, escriba la dirección de este Codespace (la del puerto 8080, termina en `.app.github.dev`).
+- **Sin instalar nada (Android o iPhone):** abra la dirección + `/campo` en el navegador; en Chrome, menú ⋮ → **Agregar a la pantalla principal**.
 
 ## Cuidar las horas gratis
 

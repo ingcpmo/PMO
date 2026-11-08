@@ -14,7 +14,10 @@ Herramienta de gestión de proyectos y operación de cuadrillas para instalacion
 |---|---|---|
 | **La app completa** (tablero, app del técnico, jornada simulada en vivo) | [![Abrir en GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=claude%2Foptimistic-noether-2uct53&repo=1446223164&quickstart=1) | Con su cuenta de GitHub. El primer arranque tarda 10 a 15 minutos; usuarios y pasos en [`.devcontainer/LEAME.md`](.devcontainer/LEAME.md). |
 | **El motor inteligente** (optimizador, GPS, materiales, zonas, órdenes desde texto) | [![Abrir en Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ingcpmo/PMO/blob/6fea50e073ee4b8ec9146b5b07d75718e4c38386/docs/simulaciones/QSG_PMO_Colab.ipynb) | Entorno de ejecución → Ejecutar todo. Menos de un minuto. |
-| **En el celular** | La dirección de Codespaces + `/campo` | Chrome en Android → ⋮ → Agregar a la pantalla principal. |
+| **App de Android** | [Descargar QSG-Campo.apk](https://github.com/ingcpmo/PMO/releases/download/qsg-campo-android/QSG-Campo.apk) | Sin cuenta de GitHub. Al abrirla, escriba la dirección de su servidor (la de Codespaces termina en `.app.github.dev`). Guía: [`instalacion/android/`](instalacion/android/). |
+| **En el celular sin instalar** | La dirección de Codespaces + `/campo` | Chrome en Android → ⋮ → Agregar a la pantalla principal. |
+
+Para entrar con su propio correo, en la terminal del Codespace: `bash .devcontainer/crear-cuenta.sh su-correo@ejemplo.com`.
 
 Si el botón de Codespaces no abre la rama: en esta página elija la rama `claude/optimistic-noether-2uct53` → botón verde **Code** → pestaña **Codespaces** → **Create codespace on claude/optimistic-noether-2uct53**.
 

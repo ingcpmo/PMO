@@ -9,6 +9,11 @@
 		"memory": "8gb",
 		"storage": "32gb"
 	},
+	"secrets": {
+		"QSG_CORREO": {
+			"description": "Opcional: su correo, para crear su propia cuenta en QSG PMO. La contraseña aparece en la terminal al terminar el arranque."
+		}
+	},
 	"postCreateCommand": "bash .devcontainer/iniciar.sh",
 	"postStartCommand": "bash .devcontainer/arrancar.sh",
 	"forwardPorts": [8080],

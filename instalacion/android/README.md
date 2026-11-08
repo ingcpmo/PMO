@@ -2,7 +2,18 @@
 
 App Android para los técnicos. Abre la app de campo de QSG PMO (`/campo`) a pantalla completa, con el **GPS** y la **cámara** del teléfono. Requiere un servidor de QSG PMO funcionando (por ejemplo, la PC de la carpeta `pc/`).
 
-Hay tres formas de instalarla. Para la primera prueba recomendamos la **A**.
+Hay cuatro formas de instalarla. Para la primera prueba recomendamos **descargar el APK listo**.
+
+## Descargar el APK listo (sin construir nada)
+
+1. En el celular abra **[QSG-Campo.apk](https://github.com/ingcpmo/PMO/releases/download/qsg-campo-android/QSG-Campo.apk)** (página: [QSG Campo para Android](https://github.com/ingcpmo/PMO/releases/tag/qsg-campo-android)). No hace falta cuenta de GitHub.
+2. Ábralo y permita **Instalar apps desconocidas** cuando Android lo pida.
+3. Abra **QSG Campo** y escriba la dirección de su servidor; la app la recuerda y al abrirla de nuevo entra sola (con la opción **Cambiar servidor** durante un segundo y medio):
+   - **GitHub Codespaces:** la dirección del puerto 8080, que termina en `.app.github.dev`. En la pestaña *Ports* ponga el 8080 como **Public**, o inicie sesión en GitHub cuando la app lo pida.
+   - **PC en la red local:** por ejemplo `http://192.168.1.50:8080` (sin https el GPS del navegador no funciona; para GPS en la red local use la opción A o B, que guardan la dirección dentro del APK).
+4. Entre con su usuario (demostración: `tecnico@qsg.pr` / `Campo2026!`, o su propia cuenta) y acepte los permisos de **ubicación** y **cámara**.
+
+Este APK lo publica el flujo **App Android (descarga directa)** cada vez que cambia esta carpeta. Si Android no deja instalar una versión nueva encima de la anterior, desinstálela primero.
 
 ## A. Construir el APK en la nube (no instala nada en su PC)
 
@@ -42,9 +53,10 @@ La dirección del servidor queda dentro del APK. Si cambia la IP de la PC, o cua
 | Archivo | Para qué |
 |---|---|
 | `construir-apk.bat` / `.sh` | Construye el APK con la dirección del servidor que le indique |
-| `preparar.mjs` | Escribe la configuración (servidor) y ajusta permisos e icono del proyecto Android |
+| `preparar.mjs` | Escribe la configuración (servidor fijo, o `--preguntar` para el APK de descarga directa) y ajusta permisos e icono del proyecto Android |
 | `package.json` | Versiones de Capacitor (el envoltorio nativo) |
-| `www/index.html` | Pantalla que se muestra si no hay conexión con el servidor |
+| `www/index.html` | Pantalla para escribir el servidor (APK de descarga directa) y la que se muestra si no hay conexión |
 | `../../.github/workflows/android-apk.yml` | La construcción en la nube (opción A) |
+| `../../.github/workflows/android-descarga.yml` | Construye y publica el APK de descarga directa |
 
 Versión de prueba: el APK va firmado con la clave de depuración. Para publicarlo en Google Play hará falta firmarlo con la clave de la empresa.

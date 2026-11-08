@@ -3,7 +3,8 @@
 # demostración, crea usuarios por rol y deja lista la jornada simulada. Tarda 10 a 15 minutos.
 # El puerto 8080 se abre al final, cuando la app ya responde: así el navegador no muestra errores.
 set -euo pipefail
-cd "$(dirname "$0")/../instalacion/pc"
+AQUI="$(cd "$(dirname "$0")" && pwd)"
+cd "$AQUI/../instalacion/pc"
 
 aleatorio() { openssl rand -hex "$1" 2>/dev/null || head -c "$1" /dev/urandom | od -An -tx1 | tr -d ' \n'; }
 if [ ! -f .env ]; then
@@ -64,4 +65,16 @@ QSG PMO está listo: ${URL}
 
 En el tablero, «Simular jornada» mueve las cuadrillas, cierra órdenes y a mitad del día entra
 una avería urgente sin asignar: ábrala en «Sin asignar» y use «Mejor cuadrilla».
+
+App Android para el celular: https://github.com/ingcpmo/PMO/releases/tag/qsg-campo-android
+(al abrirla, escriba la dirección de arriba; ponga antes el puerto 8080 como Public).
 MSG
+
+# Cuenta propia con su correo, si al crear el Codespace lo indicó en QSG_CORREO
+if [ -n "${QSG_CORREO:-}" ]; then
+  bash "$AQUI/crear-cuenta.sh" "$QSG_CORREO" \
+    || echo "Aviso: no se pudo crear su cuenta; ejecute: bash .devcontainer/crear-cuenta.sh su-correo"
+else
+  echo
+  echo "Para su propia cuenta con su correo: bash .devcontainer/crear-cuenta.sh su-correo@ejemplo.com"
+fi

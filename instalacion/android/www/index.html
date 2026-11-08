@@ -5,28 +5,146 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>QSG Campo</title>
 <style>
-  :root { --bg: #f4f6f9; --fg: #14202e; --muted: #5b6b7f; --brand: #0b5cab; color-scheme: light dark; }
-  @media (prefers-color-scheme: dark) { :root { --bg: #0f141b; --fg: #e7edf4; --muted: #9aa8b8; --brand: #4a9af0; } }
+  :root { --bg: #f4f6f9; --fg: #14202e; --muted: #5b6b7f; --brand: #0b5cab; --panel: #ffffff; --line: #d5dce5; --bad: #c62828; color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0f141b; --fg: #e7edf4; --muted: #9aa8b8; --brand: #4a9af0; --panel: #18202a; --line: #2c3845; --bad: #ef6a6a; } }
   body { margin: 0; min-height: 100dvh; display: grid; place-items: center; background: var(--bg); color: var(--fg);
          font: 16px/1.5 system-ui, sans-serif; padding: 24px; box-sizing: border-box; text-align: center; }
+  main { width: 100%; max-width: 440px; }
   h1 { font-size: 22px; margin: 16px 0 8px; }
   p { color: var(--muted); margin: 0 0 20px; }
-  code { color: var(--fg); }
+  code { color: var(--fg); word-break: break-all; }
   button { font: inherit; font-weight: 600; background: var(--brand); color: #fff; border: 0; border-radius: 12px; padding: 14px 24px; }
+  button.sec { background: transparent; color: var(--brand); border: 1px solid var(--brand); margin-top: 12px; }
+  form { display: grid; gap: 10px; text-align: left; margin-bottom: 16px; }
+  label { font-weight: 600; font-size: 15px; }
+  input { font: inherit; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); min-width: 0; }
+  .nota { font-size: 14px; text-align: left; }
+  .error { color: var(--bad); font-size: 14px; margin: 0; min-height: 1.5em; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
-  <main>
+  <main id="sin-conexion" hidden>
     <svg width="72" height="72" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0b5cab"/><circle cx="256" cy="236" r="118" fill="none" stroke="#fff" stroke-width="40"/><path d="M318 300l86 86" stroke="#fff" stroke-width="44" stroke-linecap="round"/><circle cx="256" cy="236" r="34" fill="#ffb020"/></svg>
-    <h1>No hay conexión con el servidor</h1>
-    <p>La app busca QSG PMO en <code id="srv">el servidor configurado</code>.<br>Revise que el celular tenga señal o esté en la misma Wi-Fi que la PC, y que QSG PMO esté encendido.</p>
-    <button type="button" id="retry">Reintentar</button>
+    <h1 id="titulo">No hay conexión con el servidor</h1>
+    <p id="detalle">La app busca QSG PMO en <code id="srv">el servidor configurado</code>.<br>Revise que el celular tenga señal o esté en la misma Wi-Fi que la PC, y que QSG PMO esté encendido.</p>
+    <button type="button" id="retry">Reintentar</button><br>
+    <button type="button" id="cambiar" class="sec" hidden>Cambiar servidor</button>
   </main>
+
+  <!-- APK de descarga directa: al abrirla muestra a qué servidor va, con la opción de cambiarlo -->
+  <main id="conectando" hidden>
+    <svg width="72" height="72" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0b5cab"/><circle cx="256" cy="236" r="118" fill="none" stroke="#fff" stroke-width="40"/><path d="M318 300l86 86" stroke="#fff" stroke-width="44" stroke-linecap="round"/><circle cx="256" cy="236" r="34" fill="#ffb020"/></svg>
+    <h1>Conectando con QSG PMO</h1>
+    <p><code id="srv2"></code></p>
+    <button type="button" id="cambiar2" class="sec">Cambiar servidor</button>
+  </main>
+
+  <!-- APK de descarga directa: la dirección del servidor se escribe la primera vez -->
+  <main id="conectar" hidden>
+    <svg width="72" height="72" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0b5cab"/><circle cx="256" cy="236" r="118" fill="none" stroke="#fff" stroke-width="40"/><path d="M318 300l86 86" stroke="#fff" stroke-width="44" stroke-linecap="round"/><circle cx="256" cy="236" r="34" fill="#ffb020"/></svg>
+    <h1>Conectar con QSG PMO</h1>
+    <p>Escriba la dirección de su servidor. Se pide solo una vez.</p>
+    <form id="form" novalidate>
+      <label for="dir">Dirección del servidor</label>
+      <input id="dir" type="url" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false"
+             placeholder="https://su-codespace-8080.app.github.dev">
+      <p id="error" class="error" role="alert"></p>
+      <button type="submit">Conectar</button>
+    </form>
+    <p class="nota"><b>GitHub Codespaces:</b> la dirección del puerto 8080, que termina en <code>.app.github.dev</code>.<br>
+      <b>PC en la red local:</b> por ejemplo <code>http://192.168.1.50:8080</code>.</p>
+  </main>
+
   <script src="servidor.js"></script>
   <script>
-    var s = window.QSG_SERVIDOR;
-    if (s) document.getElementById("srv").textContent = s;
-    document.getElementById("retry").onclick = function () { if (s) location.href = s + "/campo"; else location.reload(); };
+  (function () {
+    var $ = function (id) { return document.getElementById(id); };
+    var fijo = window.QSG_SERVIDOR;
+
+    // APK construido con un servidor fijo: pantalla de «sin conexión», como siempre
+    if (fijo) {
+      $("srv").textContent = fijo;
+      $("sin-conexion").hidden = false;
+      $("retry").onclick = function () { location.href = fijo + "/campo"; };
+      return;
+    }
+
+    // APK de descarga directa: pide la dirección la primera vez y la recuerda
+    function leer(almacen, clave) { try { return almacen.getItem(clave); } catch (e) { return null; } }
+    function escribir(almacen, clave, valor) { try { almacen.setItem(clave, valor); } catch (e) {} }
+    var servidor = null;
+    var espera = null;
+
+    function ir(s) {
+      clearTimeout(espera);
+      escribir(sessionStorage, "qsgIntento", "1");
+      location.href = s + "/campo";
+    }
+    function normalizar(v) {
+      v = (v || "").replace(/\s+/g, "");
+      if (!v) return "";
+      if (!/^https?:\/\//i.test(v)) {
+        var local = /^(localhost|(\d{1,3}\.){3}\d{1,3})(:\d+)?(\/|$)/i.test(v);
+        v = (local ? "http://" : "https://") + v;
+      }
+      var u;
+      try { u = new URL(v); } catch (e) { return ""; }
+      var sinPunto = u.hostname.indexOf(".") < 0 && u.hostname !== "localhost";
+      if (!/^https?:$/.test(u.protocol) || !u.hostname || sinPunto) return "";
+      var ruta = u.pathname.replace(/\/+$/, "").replace(/\/(campo|despacho|desk|app|login)(\/.*)?$/i, "");
+      return u.protocol + "//" + u.host + ruta;
+    }
+    function mostrar(id) {
+      ["sin-conexion", "conectando", "conectar"].forEach(function (x) { $(x).hidden = x !== id; });
+    }
+    function mostrarConectar() {
+      clearTimeout(espera);
+      mostrar("conectar");
+      $("dir").value = servidor || "";
+    }
+
+    // Al abrir la app muestra un momento a qué servidor va (para poder cambiarlo) y entra. Si vuelve
+    // aquí en la misma sesión (sin conexión, o con el botón «atrás»), ofrece reintentar o cambiarlo.
+    function iniciar(desdeHistorial) {
+      servidor = leer(localStorage, "qsgServidor");
+      if (!servidor) {
+        mostrarConectar();
+        return;
+      }
+      if (!leer(sessionStorage, "qsgIntento")) {
+        $("srv2").textContent = servidor;
+        mostrar("conectando");
+        espera = setTimeout(function () { ir(servidor); }, 1500);
+        return;
+      }
+      var nav = (performance.getEntriesByType && performance.getEntriesByType("navigation")[0]) || {};
+      if (desdeHistorial || nav.type === "back_forward") {
+        $("titulo").textContent = "QSG Campo";
+        $("detalle").innerHTML = 'Servidor: <code id="srv"></code>';
+        $("retry").textContent = "Abrir QSG PMO";
+      }
+      $("srv").textContent = servidor;
+      $("cambiar").hidden = false;
+      mostrar("sin-conexion");
+    }
+    $("retry").onclick = function () { ir(servidor); };
+    $("cambiar").onclick = mostrarConectar;
+    $("cambiar2").onclick = mostrarConectar;
+    $("form").onsubmit = function (e) {
+      e.preventDefault();
+      var s = normalizar($("dir").value);
+      if (!s) {
+        $("error").textContent = "Revise la dirección. Ejemplo: https://su-codespace-8080.app.github.dev";
+        return;
+      }
+      servidor = s;
+      escribir(localStorage, "qsgServidor", s);
+      ir(s);
+    };
+    window.addEventListener("pageshow", function (e) { if (e.persisted) iniciar(true); });
+    iniciar(false);
+  })();
   </script>
 </body>
 </html>

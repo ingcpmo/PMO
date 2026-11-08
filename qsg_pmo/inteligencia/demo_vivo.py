@@ -11,13 +11,14 @@ Solo funciona en un sitio de demostración: requiere ``"qsg_demo_vivo": 1`` en s
 """
 
 import hashlib
+import secrets
 
 import frappe
 from frappe import _
 from frappe.utils import add_to_date, cint, now_datetime, nowdate
 
 from qsg_pmo.assignment.engine import haversine_km
-from qsg_pmo.demo import CREWS, CUSTOMER
+from qsg_pmo.demo import CREWS, CUSTOMER, TECH_EMAIL
 
 PASO_KM = 6.0
 PASOS_EN_SITIO = 2
@@ -96,6 +97,54 @@ def preparar_sitio() -> dict:
 	return {"usuarios": list(USUARIOS_DEMO), "contrasena": CONTRASENA_DEMO}
 
 
+def crear_cuenta(correo: str, nombre: str | None = None) -> dict:
+	"""Cuenta propia para quien prueba la demostración, con su correo.
+
+	Rol de gerencia: entra al tablero de despacho (y puede simular la jornada), al escritorio y a la
+	app de campo, donde ve todas las órdenes del día. No es miembro de una cuadrilla, para que el GPS
+	de su celular no se mezcle con el de la jornada simulada. Cada llamada genera una contraseña nueva.
+	"""
+	_exigir()
+	correo = (correo or "").strip().lower()
+	if not frappe.utils.validate_email_address(correo):
+		frappe.throw(_("El correo {0} no es válido.").format(correo or "(vacío)"))
+	if correo in {*USUARIOS_DEMO, TECH_EMAIL, "admin@example.com"}:
+		frappe.throw(_("Ese usuario ya es de la demostración; use su propio correo."))
+	if not frappe.db.exists("User", correo):
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": correo,
+				"first_name": (nombre or correo.split("@")[0])[:60],
+				"send_welcome_email": 0,
+				"language": "es",
+			}
+		).insert(ignore_permissions=True)
+	u = frappe.get_doc("User", correo)
+	if "System Manager" in {r.role for r in u.roles}:
+		frappe.throw(_("{0} es administrador; su contraseña no se cambia desde aquí.").format(correo))
+	u.enabled = 1
+	if "QSG Gerente" not in {r.role for r in u.roles}:
+		u.append("roles", {"role": "QSG Gerente"})
+	contrasena = f"Qsg-{secrets.token_hex(4)}"
+	u.new_password = contrasena
+	u.save(ignore_permissions=True)
+	return {"usuario": correo, "contrasena": contrasena, "rol": "QSG Gerente"}
+
+
+def crear_cuenta_terminal(correo: str) -> None:
+	"""Para .devcontainer/crear-cuenta.sh: escribe el resultado en líneas simples (``bench execute``
+	oculta el mensaje de las excepciones y escapa los acentos)."""
+	try:
+		r = crear_cuenta(correo)
+	except Exception as e:
+		frappe.db.rollback()
+		print(f"ERROR: {frappe.utils.strip_html(str(e)) or e.__class__.__name__}")
+		return
+	print(f"USUARIO: {r['usuario']}")
+	print(f"CLAVE: {r['contrasena']}")
+
+
 # ---------------------------------------------------------------------- jornada
 def reiniciar() -> dict:
 	"""Trae las órdenes de la demostración a hoy, sin empezar, y borra el GPS de la jornada anterior."""
@@ -144,6 +193,19 @@ def reiniciar() -> dict:
 	frappe.db.delete("QSG Recomendacion", {"status": "Nueva"})
 	frappe.cache.delete_keys(CLAVE)
 	return {"fecha": hoy, "ordenes": len(nombres)}
+
+
+def al_reanudar() -> dict:
+	"""Al reanudar el Codespace otro día, trae la jornada de la demostración a hoy. Si ya es de hoy,
+	no toca nada (se conserva lo que se haya hecho)."""
+	_exigir()
+	de_hoy = frappe.db.exists(
+		"QSG Orden",
+		{"customer": CUSTOMER, "external_order_id": ("like", "LPR-%"), "appointment_date": nowdate()},
+	)
+	if de_hoy:
+		return {"reiniciada": False}
+	return {"reiniciada": True, **reiniciar()}
 
 
 def paso() -> dict:

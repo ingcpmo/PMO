@@ -1,0 +1,93 @@
+# Publica la app Android «QSG Campo» lista para descargar en el celular, sin cuenta de GitHub:
+#   https://github.com/ingcpmo/PMO/releases/tag/qsg-campo-android  →  QSG-Campo.apk
+# Esta versión pide la dirección del servidor la primera vez que se abre (por ejemplo, la de GitHub
+# Codespaces o la de la PC en la red local) y la recuerda. Para un APK con un servidor fijo, use el
+# flujo «App Android (APK)».
+name: App Android (descarga directa)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "instalacion/android/**"
+      - ".github/workflows/android-descarga.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-descarga
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: instalacion/android
+    env:
+      ETIQUETA: qsg-campo-android
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      # Misma clave de firma de prueba entre versiones (mientras la caché exista), para poder
+      # actualizar la app sin desinstalarla
+      - uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: qsg-campo-clave-de-prueba
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Configurar (pide el servidor al abrirla)
+        run: node preparar.mjs --preguntar
+      - name: Crear proyecto Android
+        run: |
+          npx cap add android
+          npx cap sync android
+          node preparar.mjs --android
+      - name: Compilar APK
+        run: cd android && chmod +x gradlew && ./gradlew --no-daemon assembleDebug
+      - name: Nombrar APK
+        run: |
+          mkdir -p salida
+          cp android/app/build/outputs/apk/debug/app-debug.apk salida/QSG-Campo.apk
+          ls -l salida/QSG-Campo.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QSG-Campo-descarga-directa
+          path: instalacion/android/salida/QSG-Campo.apk
+          retention-days: 30
+      - name: Publicar para descargar en el celular
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cat > salida/notas.md <<NOTAS
+          App Android de QSG PMO para técnicos y supervisores. Versión de prueba (firmada con una clave de prueba, no de Google Play).
+
+          **Instalar en el celular**
+          1. Toque **QSG-Campo.apk** (abajo, en *Assets*) para descargarlo.
+          2. Ábralo y permita **Instalar apps desconocidas** cuando Android lo pida.
+          3. Abra **QSG Campo** y escriba la dirección de su servidor:
+             - GitHub Codespaces: la del puerto 8080, que termina en \`.app.github.dev\` (ponga el puerto como *Public* o inicie sesión en GitHub cuando la app lo pida).
+             - PC en la red local: por ejemplo \`http://192.168.1.50:8080\`.
+          4. Entre con su usuario (demostración: \`tecnico@qsg.pr\` / \`Campo2026!\`) y acepte los permisos de **ubicación** y **cámara**.
+
+          Si Android no deja actualizar sobre una versión anterior, desinstálela primero.
+
+          Construido desde \`${GITHUB_REF_NAME}\` (${GITHUB_SHA::7}).
+          NOTAS
+          gh release delete "$ETIQUETA" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$ETIQUETA" salida/QSG-Campo.apk \
+            --target "$GITHUB_SHA" \
+            --title "QSG Campo para Android (prueba)" \
+            --notes-file salida/notas.md \
+            --latest
+          echo "Descarga directa: https://github.com/${GH_REPO}/releases/download/${ETIQUETA}/QSG-Campo.apk"

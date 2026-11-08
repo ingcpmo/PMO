@@ -3,7 +3,7 @@ cuadrilla, pendientes, recomendaciones, órdenes desde texto y permisos."""
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_days, nowdate
+from frappe.utils import add_days, get_datetime, nowdate
 
 from qsg_pmo.install import create_roles, seed
 from qsg_pmo.inteligencia import api, semilla, servicio, territorio
@@ -146,8 +146,15 @@ class TestInteligenciaFrappe(IntegrationTestCase):
 		self.assertFalse(api.reportar_ubicacion(lat=18.4, lng=-66.1)["ok"])
 
 	def test_mejor_cuadrilla(self):
+		from unittest.mock import patch
+
 		o = make_order("IA-030", "FTTH-INST-RES", CAROLINA, nowdate(), "00:00:00", "23:59:00")
-		r = servicio.mejor_cuadrilla(o.name)
+		# Como si fueran las 9:00: el turno de las cuadrillas de prueba es de 7:00 a 17:00 y la prueba
+		# no debe depender de la hora en que corre
+		with patch(
+			"qsg_pmo.inteligencia.servicio.now_datetime", return_value=get_datetime(f"{nowdate()} 09:00:00")
+		):
+			r = servicio.mejor_cuadrilla(o.name)
 		self.assertTrue(r["opciones"])
 		self.assertEqual(r["opciones"][0]["cuadrilla"], "IA-FTTH-SJ")
 
@@ -243,6 +250,52 @@ class TestInteligenciaFrappe(IntegrationTestCase):
 			0,
 		)
 		self.assertEqual(r["fecha"], nowdate())
+
+	def test_cuenta_propia_y_reanudar_otro_dia(self):
+		from frappe.utils.password import check_password
+
+		from qsg_pmo import demo
+		from qsg_pmo.inteligencia import demo_vivo
+
+		correo = "persona.prueba@ejemplo.com"
+		frappe.local.conf.qsg_demo_vivo = 0
+		self.addCleanup(lambda: frappe.local.conf.pop("qsg_demo_vivo", None))
+		self.assertRaises(frappe.PermissionError, demo_vivo.crear_cuenta, correo)
+		frappe.local.conf.qsg_demo_vivo = 1
+		if not frappe.db.exists("QSG Orden", {"customer": demo.CUSTOMER, "external_order_id": "LPR-552301"}):
+			demo.crear()
+		self.addCleanup(lambda: frappe.delete_doc("User", correo, force=1, ignore_permissions=True))
+
+		r = demo_vivo.crear_cuenta(" Persona.Prueba@Ejemplo.com ")
+		self.assertEqual(r["usuario"], correo)
+		self.assertEqual(check_password(correo, r["contrasena"]), correo)
+		self.assertIn("QSG Gerente", frappe.get_roles(correo))
+		# No es miembro de una cuadrilla: su GPS no se mezcla con la jornada simulada
+		self.assertFalse(frappe.db.exists("QSG Cuadrilla Miembro", {"user": correo}))
+		otra = demo_vivo.crear_cuenta(correo)["contrasena"]
+		self.assertNotEqual(otra, r["contrasena"])
+		self.assertRaises(frappe.ValidationError, demo_vivo.crear_cuenta, demo.TECH_EMAIL)
+		self.assertRaises(frappe.ValidationError, demo_vivo.crear_cuenta, "no-es-correo")
+
+		demo_vivo.reiniciar()
+		self.addCleanup(demo_vivo.reiniciar)
+		self.assertFalse(demo_vivo.al_reanudar()["reiniciada"])
+		frappe.db.sql(
+			"update `tabQSG Orden` set appointment_date = %s where customer = %s and external_order_id like %s",
+			(add_days(nowdate(), -1), demo.CUSTOMER, "LPR-%"),
+		)
+		self.assertTrue(demo_vivo.al_reanudar()["reiniciada"])
+		self.assertGreaterEqual(
+			frappe.db.count(
+				"QSG Orden",
+				{
+					"customer": demo.CUSTOMER,
+					"external_order_id": ("like", "LPR-%"),
+					"appointment_date": nowdate(),
+				},
+			),
+			8,
+		)
 
 	def test_briefing_y_asistente_sin_modelo(self):
 		b = servicio.briefing()
