@@ -125,13 +125,13 @@ config_env() { # config_env CLAVE VALOR: escribe o reemplaza la línea en .env
 
 traer_imagen() {
   # Primero el espejo público de Google de Docker Hub (rápido y sin límite de descargas); si falla o
-  # se queda detenido 20 minutos, Docker Hub. La imagen queda con su nombre original.
+  # no termina en 60 minutos, Docker Hub. Las capas ya bajadas se conservan entre intentos. La imagen queda con su nombre original.
   if "${DOCKER[@]}" image inspect "$1" >/dev/null 2>&1; then echo "  ya está: $1"; return 0; fi
   local espejo="mirror.gcr.io/$1" origen
   [[ "$1" == */* ]] || espejo="mirror.gcr.io/library/$1"
   for origen in "$espejo" "$1"; do
     echo "  descargando $origen (muestra el avance; puede tardar varios minutos)"
-    if timeout 20m "${DOCKER[@]}" pull "$origen"; then
+    if timeout 60m "${DOCKER[@]}" pull "$origen"; then
       [ "$origen" = "$1" ] || "${DOCKER[@]}" tag "$origen" "$1"
       return 0
     fi
