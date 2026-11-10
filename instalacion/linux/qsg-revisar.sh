@@ -4,6 +4,7 @@
 #   bash qsg-revisar.sh                    (revisa y recomienda para "$HOME/PMO QSG")
 #   bash qsg-revisar.sh "/ruta/de/destino"  (otra carpeta de destino)
 set -uo pipefail
+export LC_NUMERIC=C
 
 USUARIO="${SUDO_USER:-${USER:-$(id -un)}}"
 CASA="$(getent passwd "$USUARIO" 2>/dev/null | cut -d: -f6)"
@@ -26,15 +27,15 @@ echo "Usuario: $USUARIO   Carpeta de destino: «$DESTINO»"
 # ------------------------------------------------------------------ 1. equipo
 titulo "1. Equipo"
 if [ -r /etc/os-release ]; then . /etc/os-release; ok "Sistema: ${PRETTY_NAME:-Linux} ($(uname -m))"; fi
-MEM=$(awk '/MemTotal/ {printf "%.1f", $2/1048576}' /proc/meminfo)
-if awk "BEGIN{exit !($MEM >= 4)}"; then ok "Memoria: $MEM GB"; else no "Memoria: $MEM GB (ERPNext necesita al menos 4 GB)"; fi
+MEM=$(LC_ALL=C awk '/MemTotal/ {printf "%.1f", $2/1048576}' /proc/meminfo)
+if LC_ALL=C awk "BEGIN{exit !($MEM >= 4)}"; then ok "Memoria: $MEM GB"; else no "Memoria: $MEM GB (ERPNext necesita al menos 4 GB)"; fi
 ok "Procesadores: $(nproc)"
 mkdir_padre="$DESTINO"; while [ ! -d "$mkdir_padre" ]; do mkdir_padre="$(dirname "$mkdir_padre")"; done
 LIBRE=$(df -Pk "$mkdir_padre" | awk 'NR==2 {printf "%d", $4/1048576}')
 if [ "$LIBRE" -ge 15 ]; then ok "Disco libre: $LIBRE GB"
 elif [ "$LIBRE" -ge 10 ]; then
   ojo "Disco libre: $LIBRE GB. Alcanza (la instalación ocupa unos 8 GB), pero queda justo."
-  recomendar "Libere espacio si puede: docker system prune (borra imágenes y contenedores sin uso) y vacíe la papelera."
+  recomendar "Si necesita espacio: docker builder prune -f && docker image prune -f (solo caché y restos; no toca otros proyectos) y vacíe la papelera."
 else
   no "Disco libre: $LIBRE GB. No alcanza: la instalación ocupa unos 8 GB y necesita margen."
   recomendar "Libere al menos 10 GB antes de instalar."
@@ -101,7 +102,7 @@ if [ ${#DOCKER[@]} -gt 0 ]; then
     fi
   done
   [ "$DATOS" = 1 ] || no "No hay base de datos de QSG PMO"
-  IMG=$("${DOCKER[@]}" images --format '{{.Repository}}:{{.Tag}} ({{.Size}})' 2>/dev/null | grep -E '^(qsg-pmo|frappe/erpnext|mariadb|redis|mirror.gcr.io)' || true)
+  IMG=$("${DOCKER[@]}" images --format '{{.Repository}}:{{.Tag}} ({{.Size}})' 2>/dev/null | grep -E '^(qsg-pmo:local|frappe/erpnext:|mariadb:11\.8|redis:6\.2-alpine|mirror\.gcr\.io/)' || true)
   if [ -n "$IMG" ]; then ok "Imágenes ya descargadas (ahorran tiempo):"; printf '%s\n' "$IMG" | sed 's/^/        /'; fi
   OTROS=$("${DOCKER[@]}" ps -a --format '{{.Names}}\t{{.Image}}\t{{.Label "com.docker.compose.project"}}' 2>/dev/null \
     | grep -Ei 'frappe|erpnext' | grep -v $'\tqsg-pmo$' || true)
@@ -129,7 +130,7 @@ else
 fi
 for p in 3306 6379 8000; do
   if (ss -ltn 2>/dev/null || netstat -ltn 2>/dev/null) | grep -qE "[:.]$p\b"; then
-    ojo "Puerto $p en uso en la PC (MariaDB/Redis/Frappe fuera de Docker). No estorba: Docker usa su propia red."
+    ojo "Puerto $p en uso por otro programa u otro proyecto. No estorba: QSG PMO no publica ese puerto."
   fi
 done
 
@@ -153,6 +154,7 @@ for c in "${COPIAS[@]}"; do
 done
 if [ -d "$DESTINO" ]; then
   if [ -z "$(ls -A "$DESTINO" 2>/dev/null)" ]; then ok "La carpeta de destino existe y está vacía"
+  elif [ -f "$DESTINO/instalacion/pc/docker-compose.yml" ]; then ok "La carpeta de destino ya tiene el código de QSG PMO (se reutiliza)"
   else ojo "La carpeta de destino ya tiene archivos: $(ls -A "$DESTINO" | head -5 | tr '\n' ' ')"; fi
 else
   ok "La carpeta de destino no existe todavía (el instalador la crea)"
