@@ -123,14 +123,21 @@ config_env() { # config_env CLAVE VALOR: escribe o reemplaza la línea en .env
   if grep -q "^$1=" "$PC/.env"; then sed -i "s|^$1=.*|$1=$2|" "$PC/.env"; else echo "$1=$2" >> "$PC/.env"; fi
 }
 
-traer_imagen() { # Docker Hub, con el espejo público de Google si limita las descargas
+traer_imagen() {
+  # Primero el espejo público de Google de Docker Hub (rápido y sin límite de descargas); si falla o
+  # se queda detenido 20 minutos, Docker Hub. La imagen queda con su nombre original.
   if "${DOCKER[@]}" image inspect "$1" >/dev/null 2>&1; then echo "  ya está: $1"; return 0; fi
-  echo "  descargando $1 (muestra el avance; puede tardar varios minutos)"
-  "${DOCKER[@]}" pull "$1" && return 0
-  local espejo="mirror.gcr.io/$1"
+  local espejo="mirror.gcr.io/$1" origen
   [[ "$1" == */* ]] || espejo="mirror.gcr.io/library/$1"
-  echo "  Docker Hub no respondió; probando el espejo $espejo"
-  "${DOCKER[@]}" pull "$espejo" && "${DOCKER[@]}" tag "$espejo" "$1"
+  for origen in "$espejo" "$1"; do
+    echo "  descargando $origen (muestra el avance; puede tardar varios minutos)"
+    if timeout 20m "${DOCKER[@]}" pull "$origen"; then
+      [ "$origen" = "$1" ] || "${DOCKER[@]}" tag "$origen" "$1"
+      return 0
+    fi
+    echo "  no se pudo con $origen; probando la otra fuente"
+  done
+  return 1
 }
 
 esperar_web() {
