@@ -9,6 +9,7 @@
 # Después:
 #   bash qsg-servidor.sh iniciar      tras reiniciar la PC: servidor + dirección https para el celular
 #   bash qsg-servidor.sh tunel        abre de nuevo la dirección https (cambia cada vez)
+#   bash qsg-servidor.sh revisar      chequeo previo: qué hay instalado (no cambia nada)
 #   bash qsg-servidor.sh estado       qué está corriendo y en qué direcciones
 #   bash qsg-servidor.sh cuenta correo   crea o renueva su cuenta (contraseña nueva)
 #   bash qsg-servidor.sh actualizar   trae la última versión de GitHub y la aplica
@@ -34,6 +35,7 @@ PC="$CARPETA/instalacion/pc"
 ESTADO="$CARPETA/.qsg"
 
 info() { printf '\n==> %s\n' "$*"; }
+trap 'printf "\n\nInterrumpido. Puede retomar con el mismo comando: lo ya descargado se reutiliza.\n" >&2; exit 130' INT TERM
 aviso() { printf 'Aviso: %s\n' "$*" >&2; }
 falla() { printf '\nError: %s\n' "$*" >&2; exit 1; }
 pregunta() { # pregunta "texto" -> 0 si responde sí (por omisión sí)
@@ -74,18 +76,27 @@ requisitos() {
       || falla "QSG PMO necesita Docker: https://docs.docker.com/engine/install/"
     curl -fsSL https://get.docker.com | sudo sh
     sudo systemctl enable --now docker
-    sudo usermod -aG docker "$USER" \
+    sudo usermod -aG docker "${USER:-$(id -un)}" \
       && aviso "Su usuario quedó en el grupo docker; desde su próxima sesión no hará falta sudo."
   fi
   usar_docker
-  "${DOCKER[@]}" compose version >/dev/null 2>&1 || { info "Instalando Docker Compose"; instalar_paquete docker-compose-plugin; }
+  if ! "${DOCKER[@]}" compose version >/dev/null 2>&1; then
+    info "Instalando Docker Compose"
+    instalar_paquete docker-compose-plugin 2>/dev/null || instalar_paquete docker-compose-v2
+  fi
+  if ! "${DOCKER[@]}" buildx version >/dev/null 2>&1; then
+    info "Instalando Docker Buildx (lo necesita la construcción de la imagen)"
+    instalar_paquete docker-buildx-plugin 2>/dev/null || instalar_paquete docker-buildx \
+      || falla "no pude instalar buildx. Instálelo a mano: sudo apt-get install -y docker-buildx"
+  fi
 
   local mem_gb disco_gb
   mem_gb=$(awk '/MemTotal/ {printf "%d", $2/1048576}' /proc/meminfo)
   [ "${mem_gb:-0}" -ge 4 ] || aviso "la PC tiene ${mem_gb} GB de memoria; ERPNext necesita al menos 4 GB."
   mkdir -p "$CARPETA"
   disco_gb=$(df -Pk "$CARPETA" | awk 'NR==2 {printf "%d", $4/1048576}')
-  [ "${disco_gb:-0}" -ge 15 ] || aviso "quedan ${disco_gb} GB libres; la instalación ocupa unos 12 GB."
+  [ "${disco_gb:-0}" -ge 10 ] || falla "quedan ${disco_gb} GB libres; la instalación ocupa unos 8 GB y necesita margen. Libere espacio (docker system prune)."
+  [ "${disco_gb:-0}" -ge 15 ] || aviso "quedan ${disco_gb} GB libres: alcanza, pero queda justo."
 }
 
 # ---------------------------------------------------------------------------- código
@@ -113,11 +124,13 @@ config_env() { # config_env CLAVE VALOR: escribe o reemplaza la línea en .env
 }
 
 traer_imagen() { # Docker Hub, con el espejo público de Google si limita las descargas
-  "${DOCKER[@]}" image inspect "$1" >/dev/null 2>&1 && return 0
-  "${DOCKER[@]}" pull -q "$1" >/dev/null 2>&1 && return 0
+  if "${DOCKER[@]}" image inspect "$1" >/dev/null 2>&1; then echo "  ya está: $1"; return 0; fi
+  echo "  descargando $1 (muestra el avance; puede tardar varios minutos)"
+  "${DOCKER[@]}" pull "$1" && return 0
   local espejo="mirror.gcr.io/$1"
   [[ "$1" == */* ]] || espejo="mirror.gcr.io/library/$1"
-  "${DOCKER[@]}" pull -q "$espejo" >/dev/null && "${DOCKER[@]}" tag "$espejo" "$1"
+  echo "  Docker Hub no respondió; probando el espejo $espejo"
+  "${DOCKER[@]}" pull "$espejo" && "${DOCKER[@]}" tag "$espejo" "$1"
 }
 
 esperar_web() {
@@ -144,11 +157,11 @@ levantar_servidor() {
   config_env PUERTO "$PUERTO"
   config_env CARGAR_DEMO "$demo"
 
-  info "Descargando las imágenes base (la primera vez, unos 2 GB)"
+  info "Descargando las imágenes base (la primera vez, unos 2 GB; se ve el avance)"
   local version imagen
   version="$(sed -n 's/^ *ERPNEXT_VERSION: *//p' "$PC/docker-compose.yml" | head -1)"
   for imagen in "frappe/erpnext:$version" $(dc config --images | grep -v '^qsg-pmo' | sort -u); do
-    traer_imagen "$imagen" || aviso "no se pudo descargar $imagen; se intentará al construir."
+    traer_imagen "$imagen" || falla "no se pudo descargar $imagen. Revise la conexión y repita el comando."
   done
 
   info "Construyendo la imagen de QSG PMO (5 a 15 minutos la primera vez)"
@@ -180,7 +193,7 @@ demo_activa() { bench execute qsg_pmo.inteligencia.demo_vivo.habilitado 2>/dev/n
 cuenta() {
   local correo="${1:-}" salida
   [ -n "$correo" ] || { [ -t 0 ] && read -r -p "Su correo: " correo; }
-  correo="$(printf '%s' "$correo" | tr -d '[:space:]')"
+  correo="$(printf '%s' "$correo" | grep -oE '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' | head -1 || true)"
   [[ "$correo" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]] || falla "el correo «$correo» no es válido."
   if ! demo_activa; then
     aviso "sin demostración, las cuentas se crean como Administrator en el escritorio: Usuario → Nuevo."
@@ -303,6 +316,14 @@ case "$orden" in
       esac
     done
     requisitos
+    otra="$("${DOCKER[@]}" ps -a --filter label=com.docker.compose.project=qsg-pmo \
+      --format '{{.Label "com.docker.compose.project.working_dir"}}' 2>/dev/null | head -1)"
+    otra="${otra%/instalacion/pc}"
+    if [ -n "$otra" ] && [ "$otra" != "$CARPETA" ]; then
+      falla "QSG PMO ya está instalado en «$otra». No reinstale: use
+  QSG_CARPETA=\"$otra\" bash \"$otra/instalacion/linux/qsg-servidor.sh\" iniciar
+(o revise con: bash qsg-revisar.sh)"
+    fi
     obtener_codigo
     mkdir -p "$ESTADO"
     levantar_servidor "$demo"
@@ -321,6 +342,10 @@ case "$orden" in
     resumen
     ;;
   tunel) usar_docker; tunel; resumen ;;
+  revisar)
+    if [ -f "$CARPETA/instalacion/linux/qsg-revisar.sh" ]; then bash "$CARPETA/instalacion/linux/qsg-revisar.sh" "$CARPETA"
+    else bash <(curl -fsSL "https://raw.githubusercontent.com/ingcpmo/PMO/$RAMA/instalacion/linux/qsg-revisar.sh") "$CARPETA"; fi
+    ;;
   estado)
     usar_docker
     dc ps --format 'table {{.Service}}\t{{.Status}}'
@@ -344,5 +369,5 @@ case "$orden" in
     ;;
   detener) usar_docker; detener_tunel; dc stop; echo "QSG PMO detenido." ;;
   -h | --help | ayuda) sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' ;;
-  *) falla "orden desconocida: $orden (use: instalar, iniciar, tunel, estado, cuenta, actualizar, detener)" ;;
+  *) falla "orden desconocida: $orden (use: revisar, instalar, iniciar, tunel, estado, cuenta, actualizar, detener)" ;;
 esac

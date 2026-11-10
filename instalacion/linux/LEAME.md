@@ -2,15 +2,25 @@
 
 Su PC corre el servidor completo: ERPNext v16, QSG PMO, la API (`qsg_pmo.api`), el tablero `/despacho` y la app de campo `/campo`. El APK de Android, [QSG-Campo.apk](https://github.com/ingcpmo/PMO/releases/download/qsg-campo-android/QSG-Campo.apk), se conecta a esa PC.
 
-## Instalar (una vez)
-
-En la terminal de la PC:
+## 1. Revisar la PC antes de instalar (no cambia nada)
 
 ```bash
 mkdir -p "$HOME/PMO QSG" && cd "$HOME/PMO QSG"
+curl -fsSLO https://raw.githubusercontent.com/ingcpmo/PMO/claude/optimistic-noether-2uct53/instalacion/linux/qsg-revisar.sh
+bash qsg-revisar.sh
+```
+
+Revisa memoria, disco, Docker (incluido `buildx`), la conexión a las descargas, contenedores y bases de datos de QSG PMO, copias del código en el disco, el puerto 8080 y el túnel. Al final dice qué hacer: si ya está instalado en otra carpeta, cómo usarlo sin reinstalar; si quedó una instalación a medias, cómo continuarla.
+
+## 2. Instalar (una vez)
+
+```bash
+cd "$HOME/PMO QSG"
 curl -fsSLO https://raw.githubusercontent.com/ingcpmo/PMO/claude/optimistic-noether-2uct53/instalacion/linux/qsg-servidor.sh
 bash qsg-servidor.sh instalar su-correo@ejemplo.com
 ```
+
+Pegue y ejecute **una línea a la vez**. Si al pegar aparece `^[[200~` o una `~` al final, borre esos caracteres. Las descargas muestran su avance, así que no las interrumpa. Si lo hace, el script se detiene y se retoma con el mismo comando. Si QSG PMO ya está instalado en otra carpeta, el instalador no reinstala y le dice qué carpeta usar.
 
 El script:
 
@@ -30,6 +40,7 @@ Opciones: `--sin-demo` (servidor limpio, sin datos de prueba) y `--sin-tunel` (s
 |---|---|
 | `bash qsg-servidor.sh iniciar` | Después de reiniciar la PC: servidor y dirección https nueva |
 | `bash qsg-servidor.sh tunel` | Abrir otra vez la dirección https |
+| `bash qsg-servidor.sh revisar` | El chequeo previo, cuando quiera |
 | `bash qsg-servidor.sh estado` | Qué está corriendo y la dirección https actual |
 | `bash qsg-servidor.sh cuenta su-correo@ejemplo.com` | Crear su cuenta o darle una contraseña nueva |
 | `bash qsg-servidor.sh actualizar` | Traer la última versión de GitHub |
