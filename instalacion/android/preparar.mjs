@@ -54,9 +54,10 @@ function writeConfig(raw) {
 
 function writeConfigPreguntar() {
 	// Servidores que la app abre dentro de ella (con GPS y cámara) cuando la dirección se escribe al
-	// abrirla: GitHub Codespaces (y su inicio de sesión para puertos privados) y la red local. Otra
-	// dirección se abre en el navegador; para un dominio propio, construya el APK con esa dirección.
-	const permitidos = ["*.app.github.dev", "github.com", "192.168.*.*", "10.*.*.*", "172.*.*.*"];
+	// abrirla: GitHub Codespaces (y su inicio de sesión para puertos privados), su PC con el túnel https
+	// de Cloudflare (instalacion/linux) y la red local. Otra dirección se abre en el navegador; para un
+	// dominio propio, construya el APK con esa dirección.
+	const permitidos = ["*.app.github.dev", "github.com", "*.trycloudflare.com", "192.168.*.*", "10.*.*.*", "172.*.*.*"];
 	const config = {
 		appId: "pr.qsg.campo",
 		appName: "QSG Campo",

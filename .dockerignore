@@ -7,3 +7,4 @@ instalacion
 **/*.pyc
 node_modules
 .devcontainer
+.qsg
