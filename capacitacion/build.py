@@ -18,7 +18,8 @@ from openpyxl.utils import get_column_letter
 from playwright.sync_api import sync_playwright
 
 sys.path.insert(0, str(Path(__file__).parent))
-from contenido import ACTIVIDADES, CODIGOS_CIERRE, PANTALLAS_APP  # noqa: E402
+from contenido import ACTIVIDADES, CODIGOS_CIERRE, FUENTES_NORMAS, PANTALLAS_APP, PERFILES  # noqa: E402
+from voz import CREDITO_VOZ, narrar  # noqa: E402
 
 AZUL = "#0b5cab"
 AMBAR = "#ffb020"
@@ -141,6 +142,14 @@ def slides_actividad(a):
 	)
 	s.append(
 		(
+			page(f'<div class="main"><div class="kicker">Normas y referencias</div><ul>{"".join(f"<li>{e(x)}</li>" for x in a.get("normas", []))}</ul>'
+				 f'<p style="font-size:26px;color:#5a6680;margin-top:40px">{e(CREDITO_VOZ)}</p></div>', t, n),
+			8,
+			"Este procedimiento se basa en: " + "; ".join(a.get("normas", [])) + ". El manual técnico de Liberty siempre prevalece.",
+		)
+	)
+	s.append(
+		(
 			page(
 				f'<div class="cover">{logo(140)}<div style="height:40px"></div><h1>Hazlo bien a la primera.</h1>'
 				f'<p>Sin retrabajo, sin riesgos, con evidencia completa.</p><p style="margin-top:40px;font-size:34px">QSG · Módulo {n} · {e(t)}</p></div>'
@@ -170,14 +179,17 @@ def slides_app(a, pantallas_dir):
 				f"{tit}. {txt}",
 			)
 		)
-	return cuerpo + s[-4:]
+	return cuerpo + s[-5:]
 
 
 def render_video(slides, mp4, tmp, browser):
 	tmp = Path(tmp)
 	pg = browser.new_page(viewport={"width": 1920, "height": 1080})
 	clips = []
-	for i, (h, d, _) in enumerate(slides):
+	for i, (h, d, txt) in enumerate(slides):
+		wav = tmp / f"n{i:03d}.wav"
+		dur_voz = narrar(txt, wav)
+		d = max(d, dur_voz + 1.2)
 		f = tmp / f"s{i:03d}.html"
 		f.write_text(h, encoding="utf-8")
 		pg.goto(f.as_uri())
@@ -187,13 +199,15 @@ def render_video(slides, mp4, tmp, browser):
 		clip = tmp / f"c{i:03d}.mp4"
 		subprocess.run(
 			[
-				"ffmpeg", "-y", "-loglevel", "error", "-loop", "1", "-i", str(png), "-t", f"{d:.2f}",
+				"ffmpeg", "-y", "-loglevel", "error", "-loop", "1", "-i", str(png), "-i", str(wav), "-t", f"{d:.2f}",
 				"-vf", f"fade=t=in:st=0:d=0.4,fade=t=out:st={d - 0.4:.2f}:d=0.4,format=yuv420p",
+				"-af", f"adelay=500|500,apad,aresample=44100", "-ac", "1", "-c:a", "aac", "-b:a", "96k",
 				"-r", "30", "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", str(clip),
 			],
 			check=True,
 		)
 		clips.append(clip)
+		slides[i] = (h, d, txt)
 	pg.close()
 	lst = tmp / "list.txt"
 	lst.write_text("".join(f"file '{c}'\n" for c in clips))
@@ -239,7 +253,11 @@ def guia_html(a):
 	h.append(f'<div class="hdr">{logo(54)}<div><div class="t">QSG · Guía de campo · Módulo {a["num"]} · {e(a["tecnologia"])}</div><h1>{e(a["titulo"])}</h1></div></div>')
 	h.append(f"<h2>Objetivo</h2><p>{e(a['objetivo'])}</p>")
 	h.append("<h2>Herramientas, equipo y EPP</h2><ul>" + "".join(f"<li>{e(x)}</li>" for x in a["epp"]) + "</ul>")
-	h.append("<h2>Procedimiento</h2><ol>" + "".join(f"<li><b>{e(p)}.</b> {e(d)}</li>" for p, d in a["pasos"]) + "</ol>")
+	crit = set(a.get("criticos", []))
+	h.append("<h2>Procedimiento</h2><ol>" + "".join(f"<li><b>{e(p)}.</b> {e(d)}{' <b style=color:#c0392b>[CRÍTICO]</b>' if i in crit else ''}</li>" for i, (p, d) in enumerate(a["pasos"], 1)) + "</ol>")
+	h.append('<p class="note"><b>[CRÍTICO]</b>: si el técnico no cumple este paso en la evaluación práctica, reprueba aunque su puntaje total sea alto.</p>')
+	if a.get("normas"):
+		h.append("<h2>Normas y referencias</h2><ul>" + "".join(f"<li>{e(x)}</li>" for x in a["normas"]) + "</ul>")
 	h.append("<h2>Criterios de aceptación</h2><ul>" + "".join(f"<li>{e(x)}</li>" for x in a["criterios"]) + "</ul>")
 	h.append('<p class="note">Los valores marcados <b>PMO</b> son los que valida la app QSG Campo. Los marcados <b>Referencia</b> son prácticas de la industria: confírmalos con el manual técnico vigente de Liberty Puerto Rico, que siempre prevalece.</p>')
 	h.append("<h2>Errores que generan retrabajo</h2><ul>" + "".join(f"<li>{e(x)}</li>" for x in a["errores"]) + "</ul>")
@@ -319,6 +337,7 @@ def catalogo(path):
 		filas.append([a["num"], a["titulo"], "Video", f"{base}/Video-QSG-{a['num']}.mp4", a["duracion_video"], "Original QSG"])
 		filas.append([a["num"], a["titulo"], "Guía de campo (PDF)", f"{base}/Guia-QSG-{a['num']}.pdf", "2–3 páginas", "Original QSG"])
 		filas.append([a["num"], a["titulo"], "Guion de narración", f"{base}/Guion-video-{a['num']}.md", "", "Original QSG"])
+		filas.append([a["num"], a["titulo"], "Evaluación práctica (PDF)", f"{base}/Evaluacion-practica-{a['num']}.pdf", "1–2 páginas", "Original QSG"])
 		if a["videos"]:
 			filas.append([a["num"], a["titulo"], "Enlaces de referencia", f"{base}/Enlaces-de-referencia-{a['num']}.md", "", "Solo enlaces"])
 	hoja(ws, ["Módulo", "Actividad", "Tipo", "Archivo", "Duración", "Propiedad"], filas, [8, 34, 24, 60, 12, 16])
@@ -333,6 +352,10 @@ def catalogo(path):
 		["HFC", "MER / SNR downstream", 35, "", "dB", "PMO (valida la app)"],
 		["HFC", "Nivel de transmisión upstream", 35, 51, "dBmV", "PMO (valida la app)"],
 	], [12, 40, 10, 10, 10, 36])
+	ws = wb.create_sheet("Matriz de competencias")
+	hoja(ws, ["Módulo", "Actividad", "Ítems críticos (pasos)", *[p[0] for p in PERFILES], "Normas"],
+		 [[x["num"], x["titulo"], ", ".join(str(c) for c in x["criticos"]), *["Requerido" if x["num"] in p[1] else "" for p in PERFILES], "; ".join(x["normas"])] for x in ACTIVIDADES],
+		 [8, 34, 16, 18, 18, 22, 70])
 	wb.save(path)
 
 
@@ -346,7 +369,7 @@ def banco(path):
 			filas.append([a["num"], a["titulo"], q, *ops, chr(97 + r)])
 	hoja(ws, ["Módulo", "Actividad", "Pregunta", "a)", "b)", "c)", "d)", "Respuesta"], filas, [8, 30, 54, 26, 26, 26, 26, 10])
 	ws = wb.create_sheet("Registro de capacitación")
-	hoja(ws, ["Fecha", "Técnico", "Contratista", "Cuadrilla", "Módulo", "Calificación (%)", "Aprobado (≥ 80 %)", "Instructor", "Observaciones"], [], [12, 26, 22, 14, 10, 14, 16, 22, 40])
+	hoja(ws, ["Fecha", "Técnico", "Contratista", "Cuadrilla", "Módulo", "Teórica (%)", "Práctica (%)", "¿Falló paso crítico?", "Aprobado", "Instructor", "Firma del instructor (en hoja física)", "Observaciones"], [], [12, 26, 22, 14, 10, 12, 12, 14, 12, 22, 22, 40])
 	wb.save(path)
 
 
@@ -360,6 +383,56 @@ def leeme(browser, ini, tmp):
 		f"<div style='font-size:20pt;color:{AZUL};font-weight:bold'>Biblioteca de capacitación FTTH y HFC</div></div></div>{body}</body></html>"
 	)
 	to_pdf(browser, h, ini / "LEEME-QSG.pdf", tmp)
+
+
+def rubrica_html(a):
+	crit = set(a.get("criticos", []))
+	h = [f"<html><head><meta charset='utf-8'><style>{DOC_CSS} td.c{{text-align:center;width:52px}} .sig td{{height:34px}}</style></head><body>"]
+	h.append(f'<div class="hdr">{logo(54)}<div><div class="t">QSG · Evaluación práctica en campo · Módulo {a["num"]}</div><h1>{e(a["titulo"])}</h1></div></div>')
+	h.append("<table class='sig'><tr><th>Técnico</th><td></td><th>Fecha</th><td style='width:110px'></td></tr><tr><th>Contratista / cuadrilla</th><td></td><th>N.º de orden</th><td></td></tr></table>")
+	h.append("<h2>Pasos observados</h2><table><tr><th>#</th><th>Paso</th><th>Crítico</th><th>Cumple</th><th>No cumple</th><th>Observación</th></tr>")
+	for i, (p, _) in enumerate(a["pasos"], 1):
+		h.append(f"<tr><td>{i}</td><td>{e(p)}</td><td class='c'>{'Sí' if i in crit else ''}</td><td class='c'><span class='box'></span></td><td class='c'><span class='box'></span></td><td style='width:160px'></td></tr>")
+	h.append("</table><h2>Criterios de aceptación del trabajo</h2><table>")
+	for c in a["criterios"]:
+		h.append(f"<tr><td>{e(c)}</td><td class='c'><span class='box'></span> Sí</td><td class='c'><span class='box'></span> No</td></tr>")
+	n = len(a["pasos"]) + len(a["criterios"])
+	h.append(f"</table><h2>Resultado</h2><table><tr><th>Puntaje práctico</th><td>____ de {n} = ____ %</td><th>Evaluación teórica</th><td>____ %</td></tr>"
+			 "<tr><th>¿Falló algún paso crítico?</th><td><span class='box'></span> No &nbsp; <span class='box'></span> Sí</td><th>Resultado</th><td><span class='box'></span> Aprobado &nbsp; <span class='box'></span> Repite</td></tr></table>")
+	h.append("<p class='note'>Aprueba con 80 % o más en la práctica y en la teórica, y sin fallar ningún paso crítico. Quien no aprueba repite el módulo y se evalúa de nuevo en otra orden.</p>")
+	h.append("<h2>Certificación de la capacitación</h2><table class='sig'><tr><th>Nombre del instructor o supervisor</th><td></td></tr><tr><th>Firma del instructor</th><td></td></tr><tr><th>Firma del técnico</th><td></td></tr></table>")
+	h.append(f'<div class="ftr">Registro de capacitación conforme a OSHA 29 CFR 1910.268(c): identifica al técnico, lleva la firma de quien capacita y la fecha. Archivar en 12-Evaluaciones. QSG · {VERSION}</div></body></html>')
+	return "".join(h)
+
+
+def matriz_html():
+	h = [f"<html><head><meta charset='utf-8'><style>{DOC_CSS} td.c{{text-align:center}}</style></head><body>"]
+	h.append(f'<div class="hdr">{logo(54)}<div><div class="t">QSG · Capacitación de campo · {VERSION}</div><h1>Matriz de competencias y calificación</h1></div></div>')
+	h.append("<h2>Qué encontramos</h2><ul>"
+		"<li><b>Liberty Puerto Rico opera las dos redes.</b> HFC con DOCSIS 3.1 y FTTH en expansión. Por eso QSG necesita técnicos calificados en ambas.</li>"
+		"<li><b>Liberty exige la certificación SCTE BPI</b> (Broadband Premises Installer) a sus técnicos de servicio, además de licencia de conducir, manejo de escalera de extensión y conocimiento del código eléctrico. Los módulos QSG cubren los temas de esa certificación que aplican a la instalación del abonado.</li>"
+		"<li><b>Código eléctrico en Puerto Rico:</b> el Código de Construcción de PR 2018 adopta el NEC 2017 y el Reglamento Complementario al Código Eléctrico. Para coaxial aplica el Art. 820 (tierra de la malla) y para fibra el Art. 770.</li>"
+		"<li><b>Seguridad:</b> PR OSHA aplica la norma federal 1910.268 de telecomunicaciones. Exige capacitación con <b>registro certificado</b> (nombre del técnico, firma de quien capacita y fecha) e incluye primeros auxilios y RCP.</li>"
+		"</ul>")
+	h.append("<h2>Perfiles y módulos requeridos</h2><table><tr><th>Módulo</th>" + "".join(f"<th>{e(p[0])}</th>" for p in PERFILES) + "</tr>")
+	for a in ACTIVIDADES:
+		h.append(f"<tr><td>{a['num']} · {e(a['titulo'])}</td>" + "".join(f"<td class='c'>{'●' if a['num'] in p[1] else ''}</td>" for p in PERFILES) + "</tr>")
+	h.append("<tr><th>Requisitos adicionales</th>" + "".join(f"<td>{e(p[2])}</td>" for p in PERFILES) + "</tr></table>")
+	h.append("<h2>Cómo se califica</h2><ol>"
+		"<li><b>Teórica:</b> preguntas del módulo (banco en 12-Evaluaciones). Aprueba con 80 % o más.</li>"
+		"<li><b>Práctica en campo:</b> el supervisor observa una orden real con la hoja de evaluación práctica del módulo. Aprueba con 80 % o más y sin fallar ningún paso crítico.</li>"
+		"<li><b>Evidencia en la PMO:</b> las primeras 5 órdenes del técnico deben cerrar con evidencia completa y sin retrabajo dentro de la garantía de 30 días.</li>"
+		"<li><b>Registro:</b> cada aprobación se archiva con firma del instructor y fecha (OSHA 1910.268).</li></ol>")
+	h.append("<h2>Mantener la calificación</h2><ul>"
+		"<li>Recertificación anual de seguridad (módulo 01) y del módulo de cierre en la app (09).</li>"
+		"<li>Si el técnico acumula 2 retrabajos atribuidos en 30 días, repite el módulo de la actividad donde falló antes de recibir más órdenes de ese tipo.</li>"
+		"<li>Si la calificación del contratista en la PMO baja a categoría C, todas sus cuadrillas repiten 01, 09 y el módulo con más retrabajos.</li></ul>")
+	h.append("<h2>Fuentes</h2><table><tr><th>Norma o fuente</th><th>Qué aporta</th></tr>")
+	for t, d, u in FUENTES_NORMAS:
+		h.append(f'<tr><td><a href="{e(u)}">{e(t)}</a></td><td>{e(d)}</td></tr>')
+	h.append("</table><p class='note'>No tuvimos acceso al manual técnico interno de Liberty. Cuando QSG lo reciba, se ajustan los valores marcados como Referencia y se regenera la biblioteca.</p>")
+	h.append(f'<div class="ftr">QSG · {VERSION}</div></body></html>')
+	return "".join(h)
 
 
 # ---------------------------------------------------------------- main
@@ -378,6 +451,7 @@ def main(out, pantallas):
 			render_video(sl, d / f"Video-QSG-{a['num']}.mp4", tmp, br)
 			(d / f"Guion-video-{a['num']}.md").write_text(guion_md(a, sl), encoding="utf-8")
 			to_pdf(br, guia_html(a), d / f"Guia-QSG-{a['num']}.pdf", tmp)
+			to_pdf(br, rubrica_html(a), d / f"Evaluacion-practica-{a['num']}.pdf", tmp)
 			if a["videos"]:
 				(d / f"Enlaces-de-referencia-{a['num']}.md").write_text(enlaces_md(a), encoding="utf-8")
 			print("ok", a["carpeta"], flush=True)
@@ -385,7 +459,8 @@ def main(out, pantallas):
 		ini.mkdir()
 		catalogo(ini / "Catalogo-maestro-QSG.xlsx")
 		leeme(br, ini, tmp)
-		ev = out / "10-Evaluaciones"
+		to_pdf(br, matriz_html(), ini / "Matriz-de-competencias-QSG.pdf", tmp)
+		ev = out / "12-Evaluaciones"
 		ev.mkdir()
 		banco(ev / "Banco-de-preguntas-y-registro.xlsx")
 		br.close()

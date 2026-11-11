@@ -544,3 +544,166 @@ PANTALLAS_APP = [
 	("13-cliente-ausente.png", "Cliente ausente", "Foto de fachada, llamada y CLI-AUS. Se reprograma."),
 	("9-historial.png", "Historial", "Cada cambio queda con usuario, hora y GPS."),
 ]
+
+
+# ---------------------------------------------------------------- v2: normas de PR, ítems críticos y módulos nuevos
+
+FUENTES_NORMAS = [
+	("NEC 2017 (NFPA 70) y Reglamento Complementario al Código Eléctrico", "Código de Construcción de Puerto Rico 2018 (vigente desde el 15 de noviembre de 2018)", "https://www.icc-nta.org/code-update/puerto-rico-commonwealth-code-alert/"),
+	("OSHA 29 CFR 1910.268 (Telecomunicaciones)", "Adoptada por PR OSHA; exige capacitación certificada con nombre, firma del instructor y fecha", "https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.268"),
+	("OSHA 29 CFR 1926.1053 (Escaleras)", "Ángulo 4 a 1, extensión de 3 pies sobre el apoyo", "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.1053"),
+	("SCTE Broadband Premises Installer (BPI)", "Liberty Puerto Rico la exige a sus técnicos de servicio", "https://www.scte.org/bpi/"),
+	("Red de Liberty Puerto Rico", "HFC con DOCSIS 3.1 y FTTH en expansión (DPL News, abril de 2023)", "https://dplnews.com/puerto-rico-liberty-actualiza-su-red-fija-y-ofrece-velocidad-de-hasta-1000-mbps/"),
+]
+
+NORMAS = {
+	"01": ["OSHA 1910.268 (telecomunicaciones): capacitación certificada, primeros auxilios y RCP", "OSHA 1926.1053 (escaleras)", "Distancia a líneas: 10 pies (3 m) hasta 50 kV (OSHA)", "Reglas de LUMA para trabajo en postes de uso conjunto"],
+	"02": ["NEC 2017, Art. 770 (cables de fibra óptica)", "Reglas de LUMA para herrajes en postes de uso conjunto", "Manual de construcción de Liberty (prevalece)"],
+	"03": ["Especificación de pérdida de Liberty (prevalece)", "Prácticas FOA de empalme"],
+	"04": ["IEC 61300-3-35 (criterio de limpieza de la cara del conector)"],
+	"05": ["Manual de aprovisionamiento de Liberty (prevalece)"],
+	"06": ["Rangos de la PMO QSG (validados por la app)", "Manual técnico de Liberty (prevalece)"],
+	"07": ["NEC 2017, Art. 820.93: la malla del coaxial se conecta a tierra lo más cerca posible de la entrada", "NEC 2017, Art. 820.100: conductor de cobre de 14 AWG o más; hasta 6 m (20 pies) en viviendas de una o dos familias", "SCTE BPI: bonding and grounding"],
+	"08": ["Red DOCSIS 3.1 de Liberty", "Rangos de la PMO QSG (validados por la app)"],
+	"09": ["Procedimiento QSG PMO", "OSHA 1910.268: registro de capacitación"],
+}
+
+# Pasos cuyo incumplimiento reprueba la evaluación práctica sin importar el puntaje
+CRITICOS = {
+	"01": [1, 3, 4, 5, 6, 7],
+	"02": [1, 4, 5],
+	"03": [5, 8],
+	"04": [1, 4, 6],
+	"05": [3, 6],
+	"06": [2, 5],
+	"07": [2, 4, 7],
+	"08": [4, 5, 6],
+	"09": [3, 5, 8],
+}
+
+ACTIVIDADES.append(
+	{
+		"num": "10",
+		"carpeta": "10-Atencion-al-cliente-en-el-hogar",
+		"titulo": "Atención al cliente en el hogar",
+		"tecnologia": "FTTH y HFC",
+		"duracion_video": "≈3 min",
+		"objetivo": "Que el cliente reciba una visita puntual, respetuosa y clara, entienda su servicio y no tenga motivo para volver a llamar.",
+		"epp": [
+			"Uniforme y carnet de identificación visibles",
+			"Cubrebotas y paño para proteger el piso",
+			"Teléfono con la app QSG Campo",
+			"Guía rápida del servicio para dejarle al cliente",
+		],
+		"pasos": [
+			("Confirma la cita", "Llama o escribe antes de salir hacia el cliente. Si vas a llegar tarde, avisa antes de la ventana, no después."),
+			("Preséntate", "Saluda, di tu nombre, que vienes de parte de Liberty con QSG, y muestra tu identificación."),
+			("Confirma el trabajo", "Repite lo que vas a hacer y pregunta dónde quiere el equipo. Explica si hay que perforar."),
+			("Cuida la casa", "Cubrebotas, paño en el piso y nada de herramientas sobre los muebles. Pide permiso antes de mover algo."),
+			("Comunica los cambios", "Si algo no se puede hacer como el cliente quería, explícale por qué y ofrécele una alternativa antes de hacerla."),
+			("Deja todo limpio", "Recoge recortes, polvo de perforación y empaques. Toma la foto del área limpia."),
+			("Enseña el servicio", "Muéstrale las luces del equipo, el nombre y la clave del Wi-Fi, y cómo reiniciarlo."),
+			("Explica la encuesta", "Dile que recibirá una encuesta de satisfacción y que su opinión cuenta."),
+			("Firma y despedida", "Pide la firma en la app después de que el cliente vea el servicio funcionando."),
+		],
+		"criterios": [
+			"Llegada dentro de la ventana o aviso previo al cliente",
+			"Identificación visible durante toda la visita",
+			"Área limpia (foto obligatoria)",
+			"Cliente sabe usar el equipo y el Wi-Fi antes de firmar",
+		],
+		"errores": [
+			"Llegar fuera de la ventana sin avisar",
+			"Perforar sin explicar ni pedir permiso",
+			"Pedir la firma antes de que el cliente vea el servicio funcionando",
+			"Hablar mal de la empresa, de otro técnico o de otro contratista",
+		],
+		"evidencia_app": [
+			"Estados En ruta y En sitio a tiempo",
+			"Foto del área de trabajo limpia al terminar",
+			"Firma del cliente",
+			"Encuesta de satisfacción (estrellas y NPS) ligada a la orden",
+		],
+		"codigos": ["COMP-OK", "CLI-AUS", "CLI-RECH", "CLI-REPROG"],
+		"preguntas": [
+			("Vas a llegar 30 minutos tarde. ¿Qué haces?", ["Nada, llego igual", "Aviso al cliente antes de la ventana", "Cancelo la orden", "Llego y me disculpo"], 1),
+			("¿Cuándo se pide la firma del cliente?", ["Al llegar", "Después de que vea el servicio funcionando", "Antes de perforar", "No hace falta"], 1),
+			("El cliente quiere el equipo en un lugar sin energía. ¿Qué haces?", ["Lo pongo donde yo quiera", "Le explico y le ofrezco una alternativa", "Me voy", "Lo pongo sin energía"], 1),
+		],
+		"videos": [
+			("SCTE Broadband Premises Installer (BPI): incluye servicio al cliente", "https://www.scte.org/bpi/", "SCTE", "Inglés", LIC_ENLACE, "Certificación que Liberty exige a sus técnicos de servicio."),
+		],
+	}
+)
+
+ACTIVIDADES.append(
+	{
+		"num": "11",
+		"carpeta": "11-Diagnostico-basico-de-fallas",
+		"titulo": "Diagnóstico básico de fallas FTTH y HFC",
+		"tecnologia": "FTTH y HFC",
+		"duracion_video": "≈3 min",
+		"objetivo": "Encontrar la causa de una falla de forma ordenada, del equipo del cliente hacia la red, y corregir en la primera visita lo que está en la casa.",
+		"epp": [
+			"Medidor de potencia PON y microscopio (FTTH)",
+			"Medidor de señal DOCSIS (HFC)",
+			"Conectores, patch cords, divisores y terminadores de repuesto",
+			"Laptop o teléfono para prueba de velocidad por cable",
+		],
+		"pasos": [
+			("Escucha al cliente", "Pregunta qué falla, desde cuándo y si pasa a cierta hora. Una falla intermitente cuenta otra historia que una caída total."),
+			("Revisa las luces del equipo", "En la ONT: LOS en rojo indica que no llega luz. En el módem: sin registro indica nivel o ruido."),
+			("Mide en el equipo", "FTTH: potencia a 1490 nm. HFC: downstream, MER y upstream. Compara con los rangos de la app."),
+			("Divide el camino en mitades", "Mide en la roseta o el bloque de tierra, luego en la CTO o el tap. Así sabes si la falla está en la casa, en el drop o en la red."),
+			("Revisa lo que más falla", "FTTH: conector sucio, curva fuerte, patch cord pisado. HFC: conector flojo, malla dañada, divisores de más, puerto abierto."),
+			("Corrige y vuelve a medir", "Cambia una sola cosa a la vez y mide después de cada cambio. Así sabes qué lo arregló."),
+			("Si la falla es de red", "Si el puerto de la CTO o del tap ya está mal, cierra con RED-SINSENAL o RED-AVERIA con la medición como evidencia."),
+			("Prueba final con el cliente", "Prueba de velocidad por cable y verifica el servicio con el cliente presente."),
+			("Registra la causa", "Escribe en la app qué encontraste y qué hiciste. Eso alimenta la garantía de 30 días y evita retrabajos."),
+		],
+		"criterios": [
+			"Mediciones antes y después del arreglo registradas",
+			"Causa de la falla descrita en la app",
+			"Servicio verificado con el cliente",
+			"Fallas de red cerradas con código y medición de evidencia",
+		],
+		"errores": [
+			"Cambiar el equipo del cliente sin medir primero",
+			"Cambiar varias cosas a la vez y no saber cuál fue la causa",
+			"Cerrar como 'resuelto' sin prueba con el cliente",
+			"No registrar la causa: la próxima visita empieza de cero",
+		],
+		"evidencia_app": [
+			"Descripción de la falla encontrada",
+			"Foto de la falla y foto de la corrección",
+			"Medición final (dBm o dBmV)",
+			"Servicio verificado con el cliente (Sí/No)",
+		],
+		"codigos": ["COMP-OK", "RED-SINSENAL", "RED-AVERIA", "MAT"],
+		"preguntas": [
+			("La ONT muestra LOS en rojo. ¿Qué significa?", ["Falta energía", "No está llegando luz", "Wi-Fi apagado", "Todo bien"], 1),
+			("¿Por qué se cambia una sola cosa a la vez?", ["Para tardar más", "Para saber qué arregló la falla", "Lo exige el cliente", "No importa"], 1),
+			("En el tap el nivel está bien y en la casa mal. ¿Dónde está la falla?", ["En la red", "En el drop o la casa", "En el CMTS", "En la OLT"], 1),
+		],
+		"videos": [
+			("FOA Lecture 66: FTTH Network Installation and Test", "https://youtu.be/EOme0pvgnoc", "Fiber Optic Association", "Inglés", LIC_FOA, "Pruebas en FTTH aplicadas a la búsqueda de fallas."),
+			("Cómo leer los niveles del módem: SNR, potencia y T3/T4", "https://www.modemguides.com/blogs/modemguides-blog/modem-signal-levels-snr-power-t3-t4-timeouts-explained", "ModemGuides", "Inglés", LIC_ENLACE, "Síntomas en el módem y su causa probable."),
+		],
+	}
+)
+NORMAS["10"] = ["SCTE BPI: Customer Service", "Encuesta QSG (estrellas y NPS) ligada a la orden"]
+NORMAS["11"] = ["SCTE BPI: Troubleshooting and Repair", "Rangos de la PMO QSG"]
+CRITICOS["10"] = [2, 4, 9]
+CRITICOS["11"] = [3, 6, 8]
+
+for _a in ACTIVIDADES:
+	_a["normas"] = NORMAS.get(_a["num"], [])
+	_a["criticos"] = CRITICOS.get(_a["num"], [])
+	_a["duracion_video"] = "≈3 min"
+
+# Perfiles de calificación
+PERFILES = [
+	("Instalador HFC (Nivel 1)", ["01", "07", "08", "09", "10"], "Licencia de conducir vigente; escalera de extensión; primeros auxilios y RCP. Recomendado SCTE BPI."),
+	("Instalador FTTH (Nivel 1)", ["01", "02", "04", "05", "06", "09", "10"], "Licencia de conducir vigente; escalera de extensión; primeros auxilios y RCP. Recomendado SCTE BPI."),
+	("Técnico dual FTTH y HFC (Nivel 2)", ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"], "Nivel 1 en ambas tecnologías y 3 meses sin retrabajos atribuidos. SCTE BPI requerido (Liberty lo exige a sus técnicos de servicio)."),
+]
