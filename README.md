@@ -63,6 +63,19 @@ Lo anterior sigue igual; esto se suma y se activa en *QSG Configuracion IA*. Det
 
 Integraciones investigadas y cómo conectarlas: [`docs/integraciones.md`](docs/integraciones.md).
 
+## Novedades v0.5: perfiles, avisos y reglas
+
+| Área | Contenido |
+|---|---|
+| Un solo APK, dos vistas | El administrador entra a su tablero y el contratista a su ruta, según su usuario. El contratista no ve a los demás ni sus ubicaciones. |
+| Equipo | Pestaña «Equipo» del tablero: alta de contratistas con su empresa, cuadrilla, municipio de salida, habilidades, cupo y turno; contraseña nueva; desactivar. |
+| Por asignar | Cada petición llega con sus 3 mejores opciones por cercanía, cupo y calificación; el administrador asigna con un toque. |
+| Aviso al contratista | La app suena y vibra con la orden nueva hasta que toca «Recibida»; el tablero marca las que no se confirman a tiempo. |
+| Reglas y calificación | Pestaña «Reglas» con los pesos y tiempos; calificación A/B/C recalculada cada hora. Sin modelo de lenguaje. |
+| Dirección fija | Con Tailscale, la PC servidor publica una dirección https que no cambia al reiniciar. |
+
+Detalle: [`docs/perfiles-y-reglas.md`](docs/perfiles-y-reglas.md).
+
 ## Instalación
 
 **Para probar en una PC o en Android, use la carpeta [`instalacion/`](instalacion/)**: `instalacion/pc/instalar.bat` instala todo con Docker y `instalacion/android/` genera la app QSG Campo (APK).

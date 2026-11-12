@@ -43,6 +43,7 @@ Opciones: `--sin-demo` (servidor limpio, sin datos de prueba) y `--sin-tunel` (s
 | `bash qsg-servidor.sh revisar` | El chequeo previo, cuando quiera |
 | `bash qsg-servidor.sh estado` | Qué está corriendo y la dirección https actual |
 | `bash qsg-servidor.sh cuenta su-correo@ejemplo.com` | Crear su cuenta o darle una contraseña nueva |
+| `bash qsg-servidor.sh asegurar` | Antes de operar con contratistas reales: apaga los usuarios y cuadrillas de demostración |
 | `bash qsg-servidor.sh actualizar` | Traer la última versión de GitHub |
 | `bash qsg-servidor.sh detener` | Apagar el servidor y el túnel |
 
@@ -54,7 +55,11 @@ Desde la segunda vez, ejecútelo como `bash ~/"PMO QSG"/instalacion/linux/qsg-se
 2. Al abrirlo, escriba la **dirección https** que mostró el script (termina en `.trycloudflare.com`).
 3. Entre con su correo y su contraseña.
 
-La dirección https cambia cada vez que se abre el túnel. Cuando cambie, abra la app y toque **Cambiar servidor** mientras dice «Conectando».
+**Dirección fija con Tailscale.** Si la PC tiene Tailscale conectado, el script publica QSG PMO con Tailscale Funnel en `https://<su-equipo>.<su-red>.ts.net`. Esa dirección no cambia al reiniciar, así que el celular se configura una sola vez. La primera vez, Tailscale puede pedir que habilite Funnel en su red: el script muestra el enlace; ábralo, habilítelo y repita `bash qsg-servidor.sh tunel`.
+
+Sin Tailscale se usa una dirección temporal de Cloudflare (`…trycloudflare.com`), que cambia cada vez que se abre el túnel. Cuando cambie, abra la app y toque **Cambiar servidor** mientras dice «Conectando».
+
+**Un solo APK para todos.** El administrador entra a su tablero y el contratista a sus órdenes, según su usuario. Los contratistas se dan de alta en el tablero, pestaña «Equipo». Detalle de perfiles, reglas y calificación: [`docs/perfiles-y-reglas.md`](../../docs/perfiles-y-reglas.md).
 
 En la misma Wi-Fi también puede usar `http://IP-de-la-PC:8080`, pero sin https el celular no entrega el GPS a la app.
 

@@ -8,10 +8,11 @@
 #
 # Después:
 #   bash qsg-servidor.sh iniciar      tras reiniciar la PC: servidor + dirección https para el celular
-#   bash qsg-servidor.sh tunel        abre de nuevo la dirección https (cambia cada vez)
+#   bash qsg-servidor.sh tunel        abre la dirección https (fija con Tailscale; si no, temporal)
 #   bash qsg-servidor.sh revisar      chequeo previo: qué hay instalado (no cambia nada)
 #   bash qsg-servidor.sh estado       qué está corriendo y en qué direcciones
 #   bash qsg-servidor.sh cuenta correo   crea o renueva su cuenta (contraseña nueva)
+#   bash qsg-servidor.sh asegurar     operación real: apaga usuarios y cuadrillas de demostración
 #   bash qsg-servidor.sh actualizar   trae la última versión de GitHub y la aplica
 #   bash qsg-servidor.sh detener      apaga el servidor y el túnel
 #
@@ -224,18 +225,51 @@ abrir_firewall() { # solo para la red local; el túnel no necesita puertos abier
   fi
 }
 
-# ---------------------------------------------------------------------------- túnel https
-# Cloudflare Tunnel «rápido»: dirección https pública sin cuenta, sin abrir puertos del router y
-# con websockets. La dirección cambia cada vez que se abre el túnel.
-detener_tunel() {
+# ---------------------------------------------------------------------------- dirección https
+# Dos formas, sin abrir puertos del router y con websockets:
+# - Tailscale Funnel (si Tailscale está instalado y conectado): dirección FIJA del equipo,
+#   https://<equipo>.<red>.ts.net, que sigue igual después de reiniciar la PC.
+# - Cloudflare Tunnel rápido (respaldo, sin cuenta): la dirección cambia cada vez.
+# QSG_TUNEL=cloudflare fuerza el segundo.
+detener_tunel() { # solo el de Cloudflare; Funnel se apaga con «detener»
   if [ -f "$ESTADO/tunel.pid" ]; then
     kill "$(cat "$ESTADO/tunel.pid")" 2>/dev/null || true
-    rm -f "$ESTADO/tunel.pid" "$ESTADO/tunel.url"
+    rm -f "$ESTADO/tunel.pid"
   fi
+  [ "$(cat "$ESTADO/tunel.tipo" 2>/dev/null)" = tailscale ] || rm -f "$ESTADO/tunel.url" "$ESTADO/tunel.tipo"
 }
 
-tunel() {
-  mkdir -p "$ESTADO"
+nombre_tailscale() { # equipo.red.ts.net, o vacío si Tailscale no está conectado
+  command -v tailscale >/dev/null || return 0
+  tailscale status --json 2>/dev/null | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    if d.get("BackendState") == "Running":
+        print((d.get("Self") or {}).get("DNSName", "").rstrip("."))
+except Exception:
+    pass' 2>/dev/null || true
+}
+
+tunel_tailscale() {
+  local dns salida
+  dns="$(nombre_tailscale)"
+  [ -n "$dns" ] || return 1
+  info "Publicando QSG PMO con Tailscale Funnel en https://$dns (dirección fija)"
+  if ! salida="$(timeout 40 sudo tailscale funnel --bg "$PUERTO" 2>&1)"; then
+    printf '%s\n' "$salida" | tail -6 >&2
+    if printf '%s' "$salida" | grep -qi "login.tailscale.com"; then
+      aviso "Funnel no está habilitado en su red de Tailscale. Abra el enlace de arriba, habilítelo y repita: bash qsg-servidor.sh tunel"
+    fi
+    return 1
+  fi
+  echo "https://$dns" >"$ESTADO/tunel.url"
+  echo tailscale >"$ESTADO/tunel.tipo"
+  local i
+  for i in $(seq 1 30); do curl -sf "https://$dns/api/method/ping" >/dev/null && break; sleep 2; done
+}
+
+tunel_cloudflare() {
   local bin="$ESTADO/cloudflared" arq url i
   if [ ! -x "$bin" ]; then
     case "$(uname -m)" in
@@ -248,7 +282,7 @@ tunel() {
     curl -fsSL -o "$bin.tmp" "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arq"
     chmod +x "$bin.tmp" && mv "$bin.tmp" "$bin"
   fi
-  detener_tunel
+  rm -f "$ESTADO/tunel.url" "$ESTADO/tunel.tipo"
   nohup "$bin" tunnel --no-autoupdate --url "http://localhost:$PUERTO" >"$ESTADO/tunel.log" 2>&1 &
   echo $! >"$ESTADO/tunel.pid"
   url=""
@@ -263,7 +297,27 @@ tunel() {
     return 0
   fi
   echo "$url" >"$ESTADO/tunel.url"
+  echo cloudflare >"$ESTADO/tunel.tipo"
   for i in $(seq 1 30); do curl -sf "$url/api/method/ping" >/dev/null && break; sleep 2; done
+}
+
+tunel() {
+  mkdir -p "$ESTADO"
+  detener_tunel
+  if [ "${QSG_TUNEL:-auto}" != cloudflare ] && tunel_tailscale; then
+    return 0
+  fi
+  [ -n "$(nombre_tailscale)" ] && [ "${QSG_TUNEL:-auto}" != cloudflare ] \
+    && aviso "se usa Cloudflare mientras tanto (dirección temporal)."
+  tunel_cloudflare
+}
+
+tunel_activo() {
+  case "$(cat "$ESTADO/tunel.tipo" 2>/dev/null)" in
+    tailscale) command -v tailscale >/dev/null && tailscale funnel status 2>/dev/null | grep -q "$PUERTO" ;;
+    cloudflare) [ -f "$ESTADO/tunel.pid" ] && kill -0 "$(cat "$ESTADO/tunel.pid")" 2>/dev/null ;;
+    *) return 1 ;;
+  esac
 }
 
 ip_local() {
@@ -285,20 +339,22 @@ QSG PMO corre en esta PC ($(hostname)), carpeta «$CARPETA».
 
   En esta PC:            http://localhost:$PUERTO        (tablero: /despacho)
   En la red local:       http://${ip:-<IP-de-la-PC>}:$PUERTO   (celular en la misma Wi-Fi, sin GPS)
-  Dirección https:       ${url:-(sin túnel: bash qsg-servidor.sh tunel)}
+  Dirección https:       ${url:-(sin túnel: bash qsg-servidor.sh tunel)}$( [ "$(cat "$ESTADO/tunel.tipo" 2>/dev/null)" = tailscale ] && echo "   (fija)" || { [ -n "$url" ] && echo "   (cambia al reiniciar)"; } )
 
-App Android: $APK_URL
+App Android (un solo APK para administrador y contratistas): $APK_URL
   Al abrirla, escriba la dirección https de arriba (con ella funcionan el GPS y la cámara).
+  El administrador entra a su tablero y el contratista a sus órdenes, según su usuario.
   Si la dirección cambia, al abrir la app toque «Cambiar servidor» mientras dice «Conectando».
 
 Usuarios:
   Administrador:  Administrator / $admin   (en instalacion/pc/.env)
 MSG
   if [ -f "$ESTADO/cuenta.txt" ]; then echo "  Su cuenta:      $(cat "$ESTADO/cuenta.txt")"; fi
-  if demo_activa; then
+  if demo_activa && bench execute frappe.db.get_value --args '["User", "despacho@qsg.pr", "enabled"]' 2>/dev/null | grep -qx 1; then
     cat <<MSG
   Demostración:   despacho@qsg.pr / Demo-QSG-2026!   tecnico@qsg.pr / Campo2026!
   Ojo: con la dirección https cualquiera que la conozca puede probar estos usuarios.
+  Para operación real apáguelos con: bash qsg-servidor.sh asegurar
 MSG
   fi
   cat <<MSG
@@ -356,11 +412,11 @@ case "$orden" in
   estado)
     usar_docker
     dc ps --format 'table {{.Service}}\t{{.Status}}'
-    if [ -f "$ESTADO/tunel.pid" ] && kill -0 "$(cat "$ESTADO/tunel.pid")" 2>/dev/null; then
-      echo "Túnel https: $(cat "$ESTADO/tunel.url" 2>/dev/null)"
+    if tunel_activo; then
+      echo "Dirección https ($(cat "$ESTADO/tunel.tipo")): $(cat "$ESTADO/tunel.url" 2>/dev/null)"
     else
-      echo "Túnel https: apagado (bash qsg-servidor.sh tunel)"
-      rm -f "$ESTADO/tunel.url"
+      echo "Dirección https: apagada (bash qsg-servidor.sh tunel)"
+      rm -f "$ESTADO/tunel.url" "$ESTADO/tunel.tipo"
     fi
     resumen
     ;;
@@ -374,7 +430,25 @@ case "$orden" in
     bench migrate
     echo "QSG PMO actualizado."
     ;;
-  detener) usar_docker; detener_tunel; dc stop; echo "QSG PMO detenido." ;;
+  detener)
+    usar_docker
+    if [ "$(cat "$ESTADO/tunel.tipo" 2>/dev/null)" = tailscale ]; then
+      sudo tailscale funnel --https=443 off >/dev/null 2>&1 || sudo tailscale funnel reset >/dev/null 2>&1 || true
+      rm -f "$ESTADO/tunel.url" "$ESTADO/tunel.tipo"
+    fi
+    detener_tunel
+    dc stop
+    echo "QSG PMO detenido."
+    ;;
+  asegurar)
+    # Operación real: desactiva los usuarios y cuadrillas de demostración (contraseñas públicas)
+    usar_docker
+    salida="$(bench execute qsg_pmo.inteligencia.perfiles.desactivar_demo --kwargs '{"cuadrillas": 1}' 2>&1)" \
+      || { printf '%s\n' "$salida" | tail -5 >&2; falla "no se pudo asegurar."; }
+    echo "Usuarios de demostración desactivados: $(printf '%s\n' "$salida" | sed -n 's/^USUARIOS: //p')"
+    echo "Cuadrillas de demostración desactivadas: $(printf '%s\n' "$salida" | sed -n 's/^CUADRILLAS: //p')"
+    echo "Sus contratistas reales se dan de alta en el tablero: pestaña «Equipo»."
+    ;;
   -h | --help | ayuda) sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' ;;
-  *) falla "orden desconocida: $orden (use: revisar, instalar, iniciar, tunel, estado, cuenta, actualizar, detener)" ;;
+  *) falla "orden desconocida: $orden (use: revisar, instalar, iniciar, tunel, estado, cuenta, asegurar, actualizar, detener)" ;;
 esac

@@ -10,9 +10,9 @@ Hay cuatro formas de instalarla. Para la primera prueba recomendamos **descargar
 2. Ábralo y permita **Instalar apps desconocidas** cuando Android lo pida.
 3. Abra **QSG Campo** y escriba la dirección de su servidor; la app la recuerda y al abrirla de nuevo entra sola (con la opción **Cambiar servidor** durante un segundo y medio):
    - **GitHub Codespaces:** la dirección del puerto 8080, que termina en `.app.github.dev`. En la pestaña *Ports* ponga el 8080 como **Public**, o inicie sesión en GitHub cuando la app lo pida.
-   - **Su PC con Linux:** la dirección https que muestra `instalacion/linux/qsg-servidor.sh` (termina en `.trycloudflare.com`; con ella funciona el GPS).
+   - **Su PC con Linux:** la dirección https que muestra `instalacion/linux/qsg-servidor.sh` (fija `…ts.net` con Tailscale, o temporal `…trycloudflare.com`; con ella funciona el GPS).
    - **PC en la red local:** por ejemplo `http://192.168.1.50:8080` (sin https el GPS del navegador no funciona; para GPS en la red local use la opción A o B, que guardan la dirección dentro del APK).
-4. Entre con su usuario (demostración: `tecnico@qsg.pr` / `Campo2026!`, o su propia cuenta) y acepte los permisos de **ubicación** y **cámara**.
+4. Entre con su usuario y acepte los permisos de **ubicación** y **cámara**. El mismo APK sirve para todos: el administrador entra a su tablero de despacho y el contratista a sus órdenes.
 
 Este APK lo publica el flujo **App Android (descarga directa)** cada vez que cambia esta carpeta. Si Android no deja instalar una versión nueva encima de la anterior, desinstálela primero.
 
