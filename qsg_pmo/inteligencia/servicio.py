@@ -707,6 +707,14 @@ def mejor_cuadrilla(orden: str, excluir: str | None = None, ignorar_contratista:
 		modelo_viaje(),
 		afinidad_minutos=flt(c.affinity_minutes),
 	)
+	notas = {
+		k.name: k
+		for k in frappe.get_all("QSG Contratista", fields=["name", "current_grade", "current_score"])
+	}
+	for op in opciones:
+		k = notas.get(op["contratista"])
+		op["categoria"] = k.current_grade if k else None
+		op["puntaje"] = k.current_score if k and k.current_grade else None
 	return {"orden": o.name, "ubicacion_aproximada": aprox, "opciones": opciones}
 
 
@@ -1446,7 +1454,17 @@ def tablero(fecha=None) -> dict:
 		else []
 	)
 	ahora = now_datetime()
+	from qsg_pmo.inteligencia import avisos, perfiles, reglas
+
+	confirmacion = avisos.estado_del_dia(dia, solo)
+	for o in ordenes:
+		o.confirmacion = confirmacion["ordenes"].get(o.name)
+	despacha = bool(set(frappe.get_roles()) & set(DESPACHO))
 	return {
+		"sin_confirmar": confirmacion["sin_confirmar"],
+		"minutos_para_confirmar": confirmacion["limite"],
+		"por_asignar": reglas.nombres_por_asignar() if despacha else [],
+		"perfil": perfiles.perfil(),
 		"fecha": dia,
 		"cuadrillas": estado_cuadrillas(dia, solo),
 		"ordenes": ordenes,

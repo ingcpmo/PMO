@@ -44,7 +44,7 @@
   <main id="conectar" hidden>
     <svg width="72" height="72" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0b5cab"/><circle cx="256" cy="236" r="118" fill="none" stroke="#fff" stroke-width="40"/><path d="M318 300l86 86" stroke="#fff" stroke-width="44" stroke-linecap="round"/><circle cx="256" cy="236" r="34" fill="#ffb020"/></svg>
     <h1>Conectar con QSG PMO</h1>
-    <p>Escriba la dirección de su servidor. Se pide solo una vez.</p>
+    <p>Escriba la dirección de su servidor. Se pide solo una vez. Después entre con su usuario: el administrador ve el tablero y el contratista, sus órdenes.</p>
     <form id="form" novalidate>
       <label for="dir">Dirección del servidor</label>
       <input id="dir" type="url" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false"
@@ -53,7 +53,7 @@
       <button type="submit">Conectar</button>
     </form>
     <p class="nota"><b>GitHub Codespaces:</b> la dirección del puerto 8080, que termina en <code>.app.github.dev</code>.<br>
-      <b>Su PC con Linux:</b> la dirección https que muestra el servidor, termina en <code>.trycloudflare.com</code>.<br>
+      <b>Su PC con Linux:</b> la dirección https que muestra el servidor (termina en <code>.ts.net</code> o en <code>.trycloudflare.com</code>).<br>
       <b>PC en la red local:</b> por ejemplo <code>http://192.168.1.50:8080</code>.</p>
   </main>
 
@@ -62,12 +62,14 @@
   (function () {
     var $ = function (id) { return document.getElementById(id); };
     var fijo = window.QSG_SERVIDOR;
+    // Una sola app para todos: el servidor abre el tablero al administrador y la ruta al contratista
+    var ENTRADA = "/campo?app=1";
 
     // APK construido con un servidor fijo: pantalla de «sin conexión», como siempre
     if (fijo) {
       $("srv").textContent = fijo;
       $("sin-conexion").hidden = false;
-      $("retry").onclick = function () { location.href = fijo + "/campo"; };
+      $("retry").onclick = function () { location.href = fijo + ENTRADA; };
       return;
     }
 
@@ -80,7 +82,7 @@
     function ir(s) {
       clearTimeout(espera);
       escribir(sessionStorage, "qsgIntento", "1");
-      location.href = s + "/campo";
+      location.href = s + ENTRADA;
     }
     function normalizar(v) {
       v = (v || "").replace(/\s+/g, "");

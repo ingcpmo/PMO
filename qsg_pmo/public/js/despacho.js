@@ -5,6 +5,9 @@
 	const $root = document.getElementById("despacho");
 	const CSRF = $root.dataset.csrf;
 	const DESPACHA = $root.dataset.despacha === "1";
+	const GERENCIA = $root.dataset.gerencia === "1";
+	// Pestañas con formularios: no se repintan solas mientras el usuario escribe
+	const FIJAS = ["asistente", "equipo", "reglas"];
 	const API = "/api/method/qsg_pmo.inteligencia.api.";
 	const ABIERTAS = ["Recibida", "Asignada a contratista", "Programada", "En ruta", "Reprogramada"];
 	const COLOR = {
@@ -19,7 +22,7 @@
 		Cancelada: "#b0b8c1",
 	};
 	const SEV = { Alta: 0, Media: 1, Baja: 2 };
-	const S = { datos: null, tab: "alertas", chat: [], interpretado: null };
+	const S = { datos: null, tab: "alertas", chat: [], interpretado: null, porAsignar: null, equipo: null, reglas: null, vistas: null, creado: null };
 
 	const esc = (s) =>
 		String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -60,6 +63,24 @@
 				body: JSON.stringify(args),
 			}),
 		);
+
+	function sonar() {
+		try {
+			const C = window.AudioContext || window.webkitAudioContext;
+			const c = new C();
+			const o = c.createOscillator();
+			const g = c.createGain();
+			o.connect(g);
+			g.connect(c.destination);
+			o.frequency.value = 880;
+			g.gain.setValueAtTime(0.15, c.currentTime);
+			o.start();
+			o.stop(c.currentTime + 0.35);
+			setTimeout(() => c.close(), 700);
+		} catch (e) {
+			/* sin audio: queda el aviso en pantalla */
+		}
+	}
 
 	function aviso(texto, malo = false) {
 		const d = document.createElement("div");
@@ -205,7 +226,7 @@
 			["Órdenes del día", o.length, ""],
 			["Completadas", cuenta((x) => x.status === "Completada"), "bueno"],
 			["En campo", cuenta((x) => ["En ruta", "En sitio"].includes(x.status)), ""],
-			["Sin asignar", cuenta((x) => !x.crew && ABIERTAS.includes(x.status)), cuenta((x) => !x.crew && ABIERTAS.includes(x.status)) ? "alerta" : ""],
+			["Sin asignar", DESPACHA ? (S.datos.por_asignar || []).length : cuenta((x) => !x.crew && ABIERTAS.includes(x.status)), "alerta"],
 			["SLA en riesgo", cuenta((x) => x.sla_status === "En riesgo"), "alerta"],
 			["SLA vencido", cuenta((x) => x.sla_status === "Vencido"), "malo"],
 			["Alertas GPS", alertas, alertas ? "alerta" : ""],
@@ -223,6 +244,9 @@
 			S.tab = b.dataset.tab;
 			document.querySelectorAll(".pestanas button").forEach((x) => x.classList.toggle("on", x === b));
 			pintarPanel();
+			if (S.tab === "sinasignar") cargarPorAsignar();
+			if (S.tab === "equipo") cargarEquipo();
+			if (S.tab === "reglas") cargarReglas();
 		}),
 	);
 
@@ -249,7 +273,17 @@
 					),
 				)
 				.join("");
-			html = html || '<div class="vacio">Sin alertas. Las cuadrillas van según lo planificado.</div>';
+			const sinConfirmar = (d.sin_confirmar || [])
+				.map((x) =>
+					tarjeta(
+						"media",
+						`${esc(x.cuadrilla)} · Sin confirmar`,
+						`<p>${esc(x.orden)} se asignó hace ${x.minutos} min y el contratista no ha tocado «Recibida».</p>`,
+						DESPACHA ? `<button class="btn peq" data-mejor="${esc(x.orden)}">Mejor cuadrilla</button>` : "",
+					),
+				)
+				.join("");
+			html = sinConfirmar + html || '<div class="vacio">Sin alertas. Las cuadrillas van según lo planificado.</div>';
 		} else if (S.tab === "recomendaciones") {
 			html = d.recomendaciones
 				.map((r) =>
@@ -284,18 +318,11 @@
 				})
 				.join("");
 		} else if (S.tab === "sinasignar") {
-			const lista = d.ordenes.filter((o) => !o.crew && ABIERTAS.includes(o.status));
-			html = lista
-				.map((o) =>
-					tarjeta(
-						o.priority === "Crítica" || o.priority === "Alta" ? "alta" : "",
-						`${esc(o.name)} · ${esc(o.priority || "")}`,
-						`<p>${esc(o.work_type || "")} · ${esc(o.municipality || "")} · ${esc(o.segment || "")}</p>`,
-						DESPACHA ? `<button class="btn peq primario" data-mejor="${esc(o.name)}">Mejor cuadrilla</button>` : "",
-					),
-				)
-				.join("");
-			html = html || '<div class="vacio">Todas las órdenes del día tienen cuadrilla.</div>';
+			html = DESPACHA ? pintarPorAsignar() : '<div class="vacio">Las asignaciones las decide despacho.</div>';
+		} else if (S.tab === "equipo") {
+			html = pintarEquipo();
+		} else if (S.tab === "reglas") {
+			html = pintarReglas();
 		} else if (S.tab === "asistente") {
 			html = pintarAsistente();
 		}
@@ -310,6 +337,20 @@
 			mapa.flyTo([lat, lng], 13);
 		} else if (b.dataset.mejor) {
 			mejorCuadrilla(b.dataset.mejor, b.dataset.rec);
+		} else if (b.dataset.asignarA) {
+			asignar(b.dataset.orden, b.dataset.asignarA);
+		} else if (b.dataset.contratista) {
+			perfilContratista(b.dataset.contratista);
+		} else if (b.id === "guardar-usuario") {
+			guardarUsuario();
+		} else if (b.dataset.clave) {
+			accionUsuario("nueva_clave", { correo: b.dataset.clave });
+		} else if (b.dataset.estado && b.dataset.usuario) {
+			accionUsuario("estado_usuario", { correo: b.dataset.usuario, activo: b.dataset.estado });
+		} else if (b.id === "guardar-reglas") {
+			guardarReglas();
+		} else if (b.id === "recalcular") {
+			recalcular();
 		} else if (b.dataset.atender) {
 			try {
 				await post("atender", { recomendacion: b.dataset.atender, estado: b.dataset.estado });
@@ -338,8 +379,8 @@
 			}
 			const filas = r.opciones
 				.map(
-					(o, i) => `<div class="tarjeta"><h4>${i + 1}. ${esc(o.cuadrilla)} <span class="suave">${esc(o.contratista || "")}</span></h4>
-					<p>Llegada ${esc(hora(o.llegada))} · termina ${esc(hora(o.termina))}</p>
+					(o, i) => `<div class="tarjeta"><h4>${i + 1}. ${esc(o.cuadrilla)} ${categoria(o)} <span class="suave">${esc(o.contratista || "")}</span></h4>
+					<p>${o.km} km · llegada ${esc(hora(o.llegada))} · termina ${esc(hora(o.termina))}</p>
 					<p class="suave">${o.razones.map(esc).join(" · ")}</p>
 					<div class="acciones"><button class="btn peq primario" data-asignar="${esc(o.cuadrilla)}">Asignar</button></div></div>`,
 				)
@@ -349,22 +390,263 @@
 					(r.ubicacion_aproximada ? '<p class="suave">La orden no tiene GPS: se usó el centro del municipio.</p>' : "") +
 					filas,
 			);
-			$modal.querySelectorAll("[data-asignar]").forEach((b) =>
-				b.addEventListener("click", async () => {
-					const motivo = window.prompt("Motivo de la asignación", "Sugerencia de mejor cuadrilla");
-					if (!motivo) return;
-					try {
-						await post("reasignar", { orden, cuadrilla: b.dataset.asignar, motivo, recomendacion: recomendacion || null });
-						cerrar();
-						aviso(`${orden} asignada a ${b.dataset.asignar}`);
-						cargar();
-					} catch (err) {
-						aviso(err.message, true);
-					}
-				}),
+			$modal.querySelectorAll("[data-asignar]").forEach((b) => b.addEventListener("click", () => asignar(orden, b.dataset.asignar, recomendacion)));
+		} catch (err) {
+			abrir(`<p>${esc(err.message)}</p>`);
+		}
+	}
+
+	// ------------------------------------------------------------------ por asignar (recomendación por reglas)
+	const categoria = (o) =>
+		o.categoria ? `<span class="cat cat-${esc(o.categoria)}" title="Categoría y puntaje del contratista">${esc(o.categoria)} · ${Math.round(o.puntaje || 0)}</span>` : '<span class="cat" title="Aún sin cierres para calificar">sin calificar</span>';
+	const hhmm = (v) => {
+		const [h, m] = String(v || "").split(":");
+		return h ? `${h.padStart(2, "0")}:${m || "00"}` : "";
+	};
+	const fechaCorta = (f) => (f ? String(f).slice(5).split("-").reverse().join("/") : "sin fecha");
+
+	async function asignar(orden, cuadrilla, recomendacion) {
+		const motivo = window.prompt(`Asignar ${orden} a ${cuadrilla}. Motivo:`, "Recomendación por reglas: cercanía y calificación");
+		if (!motivo) return;
+		try {
+			await post("reasignar", { orden, cuadrilla, motivo, recomendacion: recomendacion || null });
+			cerrar();
+			aviso(`${orden} asignada a ${cuadrilla}. El contratista recibe el aviso en su app.`);
+			await cargar();
+			if (S.tab === "sinasignar") cargarPorAsignar();
+		} catch (err) {
+			aviso(err.message, true);
+		}
+	}
+
+	async function cargarPorAsignar() {
+		if (!DESPACHA) return;
+		try {
+			S.porAsignar = await get("por_asignar");
+		} catch (err) {
+			S.porAsignar = { ordenes: [], total: 0, error: err.message };
+		}
+		if (S.tab === "sinasignar") pintarPanel();
+	}
+
+	function pintarPorAsignar() {
+		const r = S.porAsignar;
+		if (!r) return '<div class="vacio">Calculando las mejores opciones…</div>';
+		if (r.error) return `<div class="vacio">${esc(r.error)}</div>`;
+		if (!r.ordenes.length) return '<div class="vacio">No hay peticiones por asignar.</div>';
+		const tarjetas = r.ordenes.map((o) => {
+			const opciones = (o.opciones || [])
+				.map(
+					(x, i) => `<div class="opcion"><div><b>${i + 1}. ${esc(x.cuadrilla)}</b> ${categoria(x)}
+						<button class="vinculo" data-contratista="${esc(x.contratista || "")}">${esc(x.contratista || "")}</button><br>
+						<span class="suave">${x.km} km · ${Math.round(x.minutos_viaje)} min de viaje · llega ${esc(hora(x.llegada))} · ${x.cupos} cupos · ${esc((x.ubicacion || "").toLowerCase())}</span></div>
+						<button class="btn peq primario" data-asignar-a="${esc(x.cuadrilla)}" data-orden="${esc(o.name)}">Asignar</button></div>`,
+				)
+				.join("");
+			return tarjeta(
+				o.priority === "Crítica" || o.priority === "Alta" ? "alta" : "",
+				`${esc(o.name)} · ${esc(o.priority || "")} <span class="suave">${esc(o.work_type || "")}</span>`,
+				`<p>${esc(o.subscriber_name || "")} · ${esc(o.municipality || "")} · ${esc(fechaCorta(o.appointment_date))} ${esc(hhmm(o.window_start))}–${esc(hhmm(o.window_end))}</p>` +
+					(o.aproximada ? '<p class="suave">Sin GPS de la dirección: se usó el centro del municipio.</p>' : "") +
+					(opciones || `<p class="suave">${esc(o.motivo || "Sin opciones.")}</p>`),
+				`<button class="btn peq" data-mejor="${esc(o.name)}">Ver el detalle</button>`,
+			);
+		});
+		const resto = r.total > r.ordenes.length ? `<p class="suave">Se muestran ${r.ordenes.length} de ${r.total}, las más urgentes primero.</p>` : "";
+		return `<p class="suave">Ordenadas por cercanía, cupo y calificación del contratista. Usted decide.</p>${tarjetas.join("")}${resto}`;
+	}
+
+	async function perfilContratista(nombre) {
+		if (!nombre) return;
+		abrir(`<p>Cargando ${esc(nombre)}…</p>`);
+		try {
+			const p = await get("perfil_contratista", { contratista: nombre });
+			const e = p.evaluacion;
+			const fila = (l, v) => `<tr><td>${esc(l)}</td><td>${v}</td></tr>`;
+			const pct = (v) => `${Math.round(v || 0)} %`;
+			abrir(
+				`<h3>${esc(p.contratista)} ${categoria(p)}</h3>
+				<p class="suave">${esc(p.estado || "")}${p.contacto ? " · " + esc(p.contacto) : ""}${p.telefono ? " · " + esc(p.telefono) : ""}</p>` +
+					(e
+						? `<table class="datos">${fila("Período", `${esc(e.period_start)} a ${esc(e.period_end)}`)}${fila("Órdenes cerradas", e.orders_total)}
+						${fila("Llega dentro de la ventana", pct(e.window_compliance))}${fila("Primera visita exitosa", pct(e.first_time_right))}
+						${fila("Cumple el SLA", pct(e.sla_compliance))}${fila("Evidencia completa", pct(e.evidence_compliance))}
+						${fila("Encuesta del cliente", e.avg_rating ? `${e.avg_rating} de 5` : "sin encuestas")}${fila("Retrabajos", `${e.rework_count} (${pct(e.rework_rate)})`)}</table>`
+						: '<p class="suave">Todavía no tiene órdenes cerradas para calificar.</p>') +
+					`<h4>Cuadrillas</h4><p>${p.cuadrillas.map((c) => `${esc(c.name)} · ${esc(c.base_zone || "sin zona")}${c.active ? "" : " · inactiva"}`).join("<br>") || "Ninguna"}</p>`,
 			);
 		} catch (err) {
 			abrir(`<p>${esc(err.message)}</p>`);
+		}
+	}
+
+	// ------------------------------------------------------------------ equipo (perfiles de usuario)
+	async function cargarEquipo() {
+		try {
+			S.equipo = await get("equipo");
+		} catch (err) {
+			S.equipo = { error: err.message };
+		}
+		if (S.tab === "equipo") pintarPanel();
+	}
+
+	function pintarEquipo() {
+		const q = S.equipo;
+		if (!q) return '<div class="vacio">Cargando el equipo…</div>';
+		if (q.error) return `<div class="vacio">${esc(q.error)}</div>`;
+		const creado = S.creado
+			? `<div class="tarjeta baja"><h4>${S.creado.nuevo ? "Usuario creado" : "Contraseña nueva"}</h4>
+				<p>Usuario: <b>${esc(S.creado.usuario)}</b><br>Contraseña: <b class="clave">${esc(S.creado.contrasena)}</b></p>
+				<p class="suave">Anótela ahora: no se vuelve a mostrar.${S.creado.cuadrilla ? " Cuadrilla " + esc(S.creado.cuadrilla) + "." : ""}</p></div>`
+			: "";
+		const usuarios = q.usuarios
+			.map((u) =>
+				tarjeta(
+					u.activo ? "" : "baja",
+					`${esc(u.nombre || u.usuario)} <span class="chip">${esc(u.perfil || "")}</span>${u.demo ? ' <span class="chip">demostración</span>' : ""}${u.activo ? "" : ' <span class="chip">desactivado</span>'}`,
+					`<p class="suave">${esc(u.usuario)}${u.cuadrilla ? ` · ${esc(u.cuadrilla)} · ${esc(u.contratista || "")} · ${esc(u.zona || "")}` : ""}${u.gps_hace_min != null ? ` · GPS hace ${u.gps_hace_min} min` : ""}</p>`,
+					u.yo
+						? '<span class="suave">Usted</span>'
+						: `<button class="btn peq" data-clave="${esc(u.usuario)}">Nueva contraseña</button>
+							<button class="btn peq" data-usuario="${esc(u.usuario)}" data-estado="${u.activo ? 0 : 1}">${u.activo ? "Desactivar" : "Activar"}</button>`,
+				),
+			)
+			.join("");
+		const municipios = q.municipios.map((m) => `<option value="${esc(m.municipio)}">${esc(m.municipio)} (${esc(m.zona)})</option>`).join("");
+		const habilidades = q.habilidades.map((h) => `<label class="casilla"><input type="checkbox" name="habilidad" value="${esc(h)}"> ${esc(h)}</label>`).join("");
+		const contratistas = q.contratistas.map((c) => `<option value="${esc(c.name)}">`).join("");
+		return `${creado}
+			<details class="tarjeta" ${S.creado ? "" : "open"}><summary><b>Agregar un usuario</b></summary>
+			<div class="formulario">
+				<label>Perfil<select id="u-perfil" class="campo">
+					<option value="Contratista">Contratista: recibe órdenes y reporta su trabajo</option>
+					<option value="Administrador">Administrador: ve todo, asigna y configura</option>
+					<option value="Despachador">Despachador: ve todo y asigna</option>
+					<option value="Supervisor">Supervisor: solo las cuadrillas de su empresa</option>
+				</select></label>
+				<label>Correo<input id="u-correo" class="campo" type="email" autocomplete="off" placeholder="correo@ejemplo.com"></label>
+				<label>Nombre<input id="u-nombre" class="campo" maxlength="80"></label>
+				<label>Teléfono<input id="u-telefono" class="campo" type="tel" maxlength="30"></label>
+				<div id="u-campo">
+					<label>Empresa contratista<input id="u-contratista" class="campo" list="lista-contratistas" placeholder="Si lo deja vacío, se usa el nombre"></label>
+					<datalist id="lista-contratistas">${contratistas}</datalist>
+					<div id="u-cuadrilla">
+						<label>Municipio de salida<select id="u-municipio" class="campo"><option value="">Elija…</option>${municipios}</select></label>
+						<p class="suave">Qué trabajos puede hacer:</p>
+						<div class="casillas">${habilidades}</div>
+						<label>Órdenes por día<input id="u-cupo" class="campo" type="number" min="1" max="20" value="5"></label>
+						<div class="turno"><label>Turno desde<input id="u-desde" class="campo" type="time" value="07:00"></label>
+						<label>hasta<input id="u-hasta" class="campo" type="time" value="17:00"></label></div>
+						<p class="suave">Fuera de su turno no se le recomiendan órdenes.</p>
+					</div>
+				</div>
+				<button class="btn primario" id="guardar-usuario">Guardar</button>
+			</div></details>
+			<h4>Usuarios (${q.usuarios.length})</h4>${usuarios}`;
+	}
+
+	$contenido.addEventListener("change", (e) => {
+		if (e.target.id !== "u-perfil") return;
+		const p = e.target.value;
+		document.getElementById("u-campo").hidden = !["Contratista", "Supervisor"].includes(p);
+		document.getElementById("u-cuadrilla").hidden = p !== "Contratista";
+	});
+
+	async function guardarUsuario() {
+		const v = (id) => document.getElementById(id).value.trim();
+		const args = {
+			perfil: v("u-perfil"),
+			correo: v("u-correo"),
+			nombre: v("u-nombre"),
+			telefono: v("u-telefono"),
+			contratista: v("u-contratista"),
+			municipio: v("u-municipio"),
+			habilidades: [...document.querySelectorAll('input[name="habilidad"]:checked')].map((x) => x.value),
+			cupo: v("u-cupo"),
+			turno_desde: v("u-desde"),
+			turno_hasta: v("u-hasta"),
+		};
+		try {
+			const r = await post("guardar_usuario", args);
+			S.creado = r.contrasena ? r : null;
+			aviso(r.nuevo ? `Usuario ${r.usuario} creado` : `Usuario ${r.usuario} actualizado`);
+			cargarEquipo();
+		} catch (err) {
+			aviso(err.message, true);
+		}
+	}
+
+	async function accionUsuario(metodo, args) {
+		try {
+			const r = await post(metodo, args);
+			S.creado = r.contrasena ? { ...r, nuevo: false } : null;
+			aviso(r.contrasena ? `Contraseña nueva para ${r.usuario}` : `${r.usuario} ${r.activo ? "activado" : "desactivado"}`);
+			cargarEquipo();
+		} catch (err) {
+			aviso(err.message, true);
+		}
+	}
+
+	// ------------------------------------------------------------------ reglas
+	async function cargarReglas() {
+		try {
+			S.reglas = await get("reglas");
+		} catch (err) {
+			S.reglas = { error: err.message };
+		}
+		if (S.tab === "reglas") pintarPanel();
+	}
+
+	function pintarReglas() {
+		const r = S.reglas;
+		if (!r) return '<div class="vacio">Cargando las reglas…</div>';
+		if (r.error) return `<div class="vacio">${esc(r.error)}</div>`;
+		const grupo = (titulo, intro, lista) =>
+			`<div class="tarjeta"><h4>${esc(titulo)}</h4><p class="suave">${intro}</p>` +
+			lista
+				.map(
+					(x) => `<label class="regla" title="${esc(x.ayuda)}"><span>${esc(x.etiqueta)}</span>
+					<span><input class="campo num" type="number" step="any" min="${x.min}" max="${x.max}" data-regla="${esc(x.campo)}" value="${x.valor}" ${r.editable ? "" : "disabled"}> <span class="suave">${esc(x.unidad)}</span></span></label>`,
+				)
+				.join("") +
+			"</div>";
+		return (
+			'<p class="suave">Todo se calcula por reglas en el servidor, sin modelo de lenguaje. El sistema propone y usted asigna.</p>' +
+			grupo(
+				"Asignación: a quién se recomienda",
+				"Se descartan las cuadrillas sin la habilidad, sin cupo, fuera de turno o que no llegan en la ventana. Las demás se ordenan por minutos de viaje desde su último GPS, con estos ajustes:",
+				r.asignacion,
+			) +
+			grupo(
+				"Calificación del contratista",
+				`Peso de cada factor en el puntaje, con los cierres de los últimos ${r.dias_calificacion} días. Categoría A desde ${r.categorias.A} puntos, B desde ${r.categorias.B}, C por debajo. Se recalcula cada hora.`,
+				r.calificacion,
+			) +
+			grupo("Tiempos", "Cuándo avisa el tablero.", r.tiempos) +
+			(r.editable
+				? '<p><button class="btn primario" id="guardar-reglas">Guardar las reglas</button> <button class="btn" id="recalcular">Recalcular calificaciones ahora</button></p>'
+				: '<p class="suave">Solo el administrador cambia las reglas.</p>')
+		);
+	}
+
+	async function guardarReglas() {
+		const valores = {};
+		document.querySelectorAll("[data-regla]").forEach((i) => (valores[i.dataset.regla] = i.value));
+		try {
+			S.reglas = await post("guardar_reglas", { valores });
+			aviso("Reglas guardadas");
+			pintarPanel();
+		} catch (err) {
+			aviso(err.message, true);
+		}
+	}
+
+	async function recalcular() {
+		try {
+			const r = await post("recalcular_calificaciones");
+			aviso(r.length ? r.map((x) => `${x.contratista}: ${x.categoria || "-"} (${Math.round(x.puntaje || 0)})`).join(" · ") : "Ningún contratista tiene cierres en el período");
+		} catch (err) {
+			aviso(err.message, true);
 		}
 	}
 
@@ -501,13 +783,38 @@
 			S.datos = await get("tablero", { fecha: document.getElementById("fecha").value });
 			document.getElementById("proveedor").textContent = `IA: ${S.datos.ia}`;
 			$sim.hidden = $simReiniciar.hidden = !(S.datos.demo && DESPACHA);
+			document.getElementById("perfil").textContent = S.datos.perfil || "";
+			avisarNuevas(S.datos.por_asignar || []);
 			pintarKpis();
 			pintarMapa();
-			if (S.tab !== "asistente") pintarPanel();
+			if (!FIJAS.includes(S.tab)) pintarPanel();
 		} catch (err) {
 			aviso(err.message, true);
 		}
 	}
+	// Petición nueva sin cuadrilla: aviso con sonido y contador en la pestaña
+	function avisarNuevas(nombres) {
+		const nuevas = S.vistas ? nombres.filter((n) => !S.vistas.has(n)) : [];
+		S.vistas = new Set(nombres);
+		const $tab = document.querySelector('[data-tab="sinasignar"]');
+		$tab.textContent = nombres.length ? `Sin asignar (${nombres.length})` : "Sin asignar";
+		if (!nuevas.length) return;
+		sonar();
+		aviso(nuevas.length === 1 ? `Petición nueva por asignar: ${nuevas[0]}` : `${nuevas.length} peticiones nuevas por asignar`);
+		if (S.tab === "sinasignar") cargarPorAsignar();
+	}
+	document.querySelector('[data-tab="equipo"]').hidden = !GERENCIA;
+	document.querySelector('[data-tab="reglas"]').hidden = !DESPACHA;
+	document.getElementById("salir").addEventListener("click", async (e) => {
+		e.preventDefault();
+		try {
+			await fetch("/api/method/logout", { credentials: "same-origin" });
+		} catch (err) {
+			/* sin conexión: igual se va al inicio de sesión */
+		}
+		location.href = "/login?redirect-to=" + encodeURIComponent("/campo?app=1");
+	});
+
 	const $fecha = document.getElementById("fecha");
 	$fecha.value = new URLSearchParams(location.search).get("fecha") || hoyLocal();
 	$fecha.addEventListener("change", () => {
@@ -517,6 +824,6 @@
 	document.getElementById("actualizar").addEventListener("click", cargar);
 	cargar().then(pintarPanel);
 	setInterval(() => {
-		if (!document.hidden && S.tab !== "asistente") cargar();
+		if (!document.hidden) cargar();
 	}, 60000);
 })();

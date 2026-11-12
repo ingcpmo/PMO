@@ -297,6 +297,231 @@ class TestInteligenciaFrappe(IntegrationTestCase):
 			8,
 		)
 
+	# ------------------------------------------------------------------ perfiles, avisos y reglas (v0.5)
+	def test_perfiles_y_alta_de_equipo(self):
+		from frappe.utils.password import check_password
+
+		from qsg_pmo.inteligencia import perfiles
+		from qsg_pmo.www import campo
+
+		gerente = ensure_user("gerente.ia@qsg.test", "QSG Gerente")
+		correo, empresa = "contratista.nuevo@qsg.test", "Ana Campo Servicios"
+
+		def limpiar():
+			for crew in frappe.get_all("QSG Cuadrilla", filters={"contractor": empresa}, pluck="name"):
+				frappe.delete_doc("QSG Cuadrilla", crew, force=1, ignore_permissions=True)
+			frappe.delete_doc(
+				"QSG Contratista", empresa, force=1, ignore_permissions=True, ignore_missing=True
+			)
+			frappe.delete_doc("User", correo, force=1, ignore_permissions=True, ignore_missing=True)
+
+		self.addCleanup(limpiar)
+
+		# Cada perfil abre lo suyo; desde el APK (?app=1) despacho va a su tablero y el contratista a su ruta
+		frappe.set_user(TECNICO)
+		self.assertEqual(api.mi_perfil()["perfil"], "Contratista")
+		self.assertEqual(api.mi_perfil()["inicio"], "/campo")
+		self.assertRaises(frappe.PermissionError, api.equipo)
+		self.assertRaises(frappe.PermissionError, api.guardar_usuario, "Administrador", "x@qsg.test", "X")
+		frappe.set_user(DESPACHADOR)
+		self.assertEqual(api.mi_perfil()["inicio"], "/despacho")
+		self.assertRaises(frappe.PermissionError, api.equipo)
+		frappe.form_dict.app = "1"
+		self.addCleanup(lambda: frappe.form_dict.pop("app", None))
+		self.assertRaises(frappe.Redirect, campo.get_context, frappe._dict())
+		self.assertEqual(frappe.local.flags.redirect_location, "/despacho")
+
+		# El administrador da de alta a un contratista: usuario, empresa y cuadrilla lista para recibir
+		frappe.set_user(gerente)
+		self.assertEqual(api.mi_perfil()["perfil"], "Administrador")
+		self.assertRaises(frappe.ValidationError, api.guardar_usuario, "Contratista", correo, "Ana Campo")
+		r = api.guardar_usuario(
+			"Contratista",
+			correo,
+			"Ana Campo",
+			"787-555-0000",
+			empresa,
+			"Carolina",
+			["FTTH-RES", "NO-EXISTE"],
+			4,
+		)
+		self.assertTrue(r["nuevo"])
+		self.assertEqual(check_password(correo, r["contrasena"]), correo)
+		self.assertEqual(perfiles.perfil(correo), "Contratista")
+		crew = frappe.get_doc("QSG Cuadrilla", r["cuadrilla"])
+		self.assertEqual(crew.contractor, empresa)
+		self.assertTrue(crew.start_latitude and crew.base_zone and crew.active)
+		self.assertEqual([x.skill for x in crew.skills], ["FTTH-RES"])
+		self.assertEqual(crew.max_orders_per_day, 4)
+		self.assertEqual((str(crew.shift_start), str(crew.shift_end)), ("7:00:00", "17:00:00"))
+		self.assertEqual([m.user for m in crew.members], [correo])
+		fila = next(u for u in api.equipo()["usuarios"] if u["usuario"] == correo)
+		self.assertEqual((fila["perfil"], fila["cuadrilla"], fila["activo"]), ("Contratista", crew.name, 1))
+
+		# Guardar de nuevo no duplica la cuadrilla ni cambia la contraseña
+		r2 = api.guardar_usuario(
+			"Contratista",
+			correo,
+			"Ana Campo",
+			None,
+			None,
+			"Bayamón",
+			["FTTH-RES", "RECONECT"],
+			None,
+			"06:30",
+			"22:00",
+		)
+		self.assertEqual(str(frappe.db.get_value("QSG Cuadrilla", crew.name, "shift_end")), "22:00:00")
+		self.assertRaises(
+			frappe.ValidationError,
+			api.guardar_usuario,
+			"Contratista",
+			correo,
+			"Ana",
+			None,
+			None,
+			None,
+			None,
+			None,
+			"18:00",
+			"08:00",
+		)
+		self.assertEqual((r2["cuadrilla"], r2["contrasena"], r2["nuevo"]), (crew.name, None, False))
+		self.assertEqual(frappe.db.count("QSG Cuadrilla", {"contractor": empresa}), 1)
+		self.assertNotEqual(api.nueva_clave(correo)["contrasena"], r["contrasena"])
+
+		# Desactivar al contratista saca a su cuadrilla de las recomendaciones
+		api.estado_usuario(correo, 0)
+		self.assertEqual(frappe.db.get_value("User", correo, "enabled"), 0)
+		self.assertEqual(frappe.db.get_value("QSG Cuadrilla", crew.name, "active"), 0)
+		api.estado_usuario(correo, 1)
+		self.assertEqual(frappe.db.get_value("QSG Cuadrilla", crew.name, "active"), 1)
+
+		# Nadie se da privilegios: ni al administrador del sistema, ni a sí mismo, ni a otro gerente
+		self.assertRaises(frappe.PermissionError, api.nueva_clave, "Administrator")
+		self.assertRaises(frappe.PermissionError, api.estado_usuario, gerente, 0)
+		self.assertRaises(frappe.PermissionError, api.guardar_usuario, "Contratista", gerente, "Yo")
+		otro_gerente = ensure_user("gerente2.ia@qsg.test", "QSG Gerente")
+		frappe.db.set_value("User", otro_gerente, "owner", "Administrator")  # no lo creó este gerente
+		self.assertRaises(frappe.PermissionError, api.nueva_clave, otro_gerente)
+		self.assertRaises(frappe.ValidationError, api.guardar_usuario, "Dueño", "y@qsg.test", "Y")
+
+	def test_aviso_al_contratista_y_confirmacion(self):
+		from datetime import timedelta
+
+		from frappe.utils import now_datetime
+
+		o = make_order("IA-090", "FTTH-INST-RES", SAN_JUAN, nowdate(), "00:00:00", "23:59:00")
+		o2 = make_order("IA-091", "FTTH-INST-RES", SAN_JUAN, nowdate(), "00:00:00", "23:59:00")
+		ajeno = ensure_user("ajeno.ia@qsg.test", "QSG Tecnico")
+
+		def cancelar():  # para no ocupar a la cuadrilla en las demás pruebas
+			for name in (o.name, o2.name):
+				frappe.db.set_value("QSG Orden", name, {"status": "Cancelada", "crew": None})
+
+		self.addCleanup(cancelar)
+		frappe.set_user(DESPACHADOR)
+		api.reasignar(o.name, "IA-FTTH-SJ", "prueba de aviso")
+		api.reasignar(o2.name, "IA-FTTH-SJ", "prueba de aviso")
+		estado = {x["name"]: x["confirmacion"] for x in api.tablero()["ordenes"]}
+		self.assertEqual(estado[o.name]["recibida"], 0)
+
+		# El contratista de la cuadrilla recibe el aviso; otro contratista ni lo ve ni lo confirma
+		frappe.set_user(TECNICO)
+		self.assertLessEqual({o.name, o2.name}, {a["orden"] for a in api.mis_avisos()})
+		frappe.set_user(ajeno)
+		self.assertEqual(api.mis_avisos(), [])
+		self.assertRaises(frappe.PermissionError, api.confirmar_aviso, o.name)
+		self.assertRaises(frappe.PermissionError, api.por_asignar)
+		self.assertRaises(frappe.PermissionError, api.tablero)
+		self.assertEqual(frappe.get_list("QSG Orden", pluck="name"), [])
+		for doctype in ("QSG Ubicacion", "QSG Aviso", "QSG Cuadrilla", "QSG Evaluacion Contratista"):
+			self.assertFalse(frappe.has_permission(doctype, "read"), doctype)
+
+		frappe.set_user(TECNICO)
+		api.confirmar_aviso(o.name)
+		self.assertNotIn(o.name, {a["orden"] for a in api.mis_avisos()})
+		self.assertEqual(frappe.db.get_value("QSG Aviso", {"order": o.name}, "confirmed_by"), TECNICO)
+
+		# Pasado el tiempo sin «Recibida», el tablero lo marca; la confirmada no aparece
+		frappe.set_user("Administrator")
+		frappe.db.set_value(
+			"QSG Aviso", {"order": o2.name}, "assigned_on", now_datetime() - timedelta(minutes=45)
+		)
+		frappe.set_user(DESPACHADOR)
+		tarde = {x["orden"] for x in api.tablero()["sin_confirmar"]}
+		self.assertIn(o2.name, tarde)
+		self.assertNotIn(o.name, tarde)
+		# Reasignar vuelve a pedir la confirmación
+		api.reasignar(o.name, "IA-FTTH-SJ", "se reasigna")
+		frappe.set_user(TECNICO)
+		self.assertIn(o.name, {a["orden"] for a in api.mis_avisos()})
+
+	def test_por_asignar_calificacion_y_reglas(self):
+		from unittest.mock import patch
+
+		from frappe.utils import now_datetime
+
+		from qsg_pmo.inteligencia import avisos, reglas
+
+		o = make_order("IA-095", "FTTH-INST-RES", CAROLINA, nowdate(), "00:00:00", "23:59:00")
+		frappe.set_user(DESPACHADOR)
+		self.assertIn(o.name, api.tablero()["por_asignar"])
+		with patch(
+			"qsg_pmo.inteligencia.servicio.now_datetime", return_value=get_datetime(f"{nowdate()} 09:00:00")
+		):
+			r = api.por_asignar()
+		fila = next(x for x in r["ordenes"] if x["name"] == o.name)
+		self.addCleanup(lambda: frappe.db.set_value("QSG Orden", o.name, "status", "Cancelada"))
+		mejor = fila["opciones"][0]
+		self.assertIn(mejor["cuadrilla"], ("IA-FTTH-SJ", "IA-FTTH-CAG"))
+		self.assertGreater(mejor["km"], 0)
+		self.assertTrue(1 <= mejor["cupos"] <= 5)
+		self.assertIn("categoria", mejor)
+
+		# Reglas: despacho las ve, solo gerencia las cambia, y solo dentro de sus límites
+		self.assertFalse(api.reglas()["editable"])
+		self.assertRaises(frappe.PermissionError, api.guardar_reglas, {"ack_minutes": 5})
+		frappe.set_user("Administrator")
+		antes = avisos.minutos_para_confirmar()
+		self.addCleanup(lambda: frappe.db.set_single_value("QSG Configuracion IA", "ack_minutes", antes))
+		api.guardar_reglas({"ack_minutes": 7, "grade_a_bonus_minutes": 12})
+		self.assertEqual(avisos.minutos_para_confirmar(), 7)
+		self.assertEqual(frappe.db.get_single_value("QSG Configuracion", "grade_a_bonus_minutes"), 12)
+		self.assertRaises(frappe.ValidationError, api.guardar_reglas, {"ack_minutes": 99999})
+		self.assertRaises(frappe.ValidationError, api.guardar_reglas, {"ai_api_key": 1})
+
+		# Calificación por código: con cierres recientes sale puntaje y categoría, una evaluación por mes
+		cerrada = make_order("IA-096", "FTTH-INST-RES", SAN_JUAN, nowdate(), "08:00:00", "12:00:00")
+		frappe.db.set_value(
+			"QSG Orden",
+			cerrada.name,
+			{
+				"contractor": CONTRATISTA,
+				"crew": "IA-FTTH-SJ",
+				"status": "Completada",
+				"finished_on": now_datetime(),
+				"appointment_date": add_days(nowdate(), -1),
+				"sla_status": "Cumplido",
+			},
+		)
+		frappe.db.set_value("QSG Contratista", CONTRATISTA, {"current_grade": None, "current_score": 0})
+		nota = next(x for x in reglas.calificar_contratistas() if x["contratista"] == CONTRATISTA)
+		self.assertIn(nota["categoria"], ("A", "B", "C"))
+		self.assertEqual(
+			frappe.db.get_value("QSG Contratista", CONTRATISTA, "current_grade"), nota["categoria"]
+		)
+		reglas.calificar_contratistas()
+		self.assertEqual(
+			frappe.db.count(
+				"QSG Evaluacion Contratista", {"contractor": CONTRATISTA, "name": ("like", "AUTO-%")}
+			),
+			1,
+		)
+		p = api.perfil_contratista(CONTRATISTA)
+		self.assertEqual(p["categoria"], nota["categoria"])
+		self.assertGreaterEqual(p["evaluacion"]["orders_total"], 1)
+
 	def test_briefing_y_asistente_sin_modelo(self):
 		b = servicio.briefing()
 		self.assertEqual(b["proveedor"], "Ninguno")

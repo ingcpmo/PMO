@@ -10,7 +10,7 @@
 	<link rel="stylesheet" href="/assets/qsg_pmo/css/despacho.css?v={{ version }}">
 </head>
 <body>
-	<div id="despacho" data-csrf="{{ csrf_token | e }}" data-name="{{ full_name | e }}" data-despacha="{{ despacha }}">
+	<div id="despacho" data-csrf="{{ csrf_token | e }}" data-name="{{ full_name | e }}" data-despacha="{{ despacha }}" data-gerencia="{{ gerencia }}">
 		<header class="barra">
 			<div class="marca">QSG <b>Despacho</b></div>
 			<input type="date" id="fecha" aria-label="Fecha">
@@ -19,7 +19,10 @@
 			<button id="sim" class="btn" hidden title="Demostración: mueve las cuadrillas y cierra órdenes">▶ Simular jornada</button>
 			<button id="sim-reiniciar" class="btn" hidden title="Demostración: vuelve a empezar el día">Reiniciar jornada</button>
 			<span id="proveedor" class="chip" title="Modelo de lenguaje configurado"></span>
+			<span id="perfil" class="chip" title="Su perfil"></span>
+			<a class="enlace" href="/campo">Vista de campo</a>
 			<a class="enlace" href="/app/qsg-pmo">Escritorio</a>
+			<a class="enlace" href="/?cmd=web_logout" id="salir">Salir</a>
 		</header>
 		<section id="kpis" class="kpis" aria-live="polite"></section>
 		<main class="cuerpo">
@@ -31,6 +34,8 @@
 					<button data-tab="cuadrillas">Cuadrillas</button>
 					<button data-tab="sinasignar">Sin asignar</button>
 					<button data-tab="asistente">Asistente</button>
+					<button data-tab="equipo" hidden>Equipo</button>
+					<button data-tab="reglas" hidden>Reglas</button>
 				</nav>
 				<div id="contenido" class="contenido"></div>
 			</aside>

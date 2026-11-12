@@ -28,6 +28,7 @@
   "gps_interval_s",
   "no_signal_minutes",
   "idle_minutes",
+  "ack_minutes",
   "cb_gps",
   "ping_retention_days",
   "traccar_url",
@@ -190,6 +191,13 @@
    "label": "Alerta «detenida fuera de ruta» después de (min)"
   },
   {
+   "default": "10",
+   "description": "Si el contratista no toca «Recibida» en este tiempo, el tablero lo marca como sin confirmar.",
+   "fieldname": "ack_minutes",
+   "fieldtype": "Int",
+   "label": "Minutos para confirmar una orden asignada"
+  },
+  {
    "fieldname": "cb_gps",
    "fieldtype": "Column Break"
   },
@@ -306,7 +314,7 @@
  "index_web_pages_for_search": 0,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-05 06:00:00.000000",
+ "modified": "2026-11-12 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "QSG PMO",
  "name": "QSG Configuracion IA",

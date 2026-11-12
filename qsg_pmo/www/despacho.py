@@ -22,4 +22,5 @@ def get_context(context):
 	context.full_name = frappe.utils.get_fullname(frappe.session.user)
 	context.version = frappe.get_attr("qsg_pmo.__version__")
 	context.despacha = 1 if roles & DESPACHAN else 0
+	context.gerencia = 1 if roles & {"System Manager", "QSG Gerente"} else 0
 	return context

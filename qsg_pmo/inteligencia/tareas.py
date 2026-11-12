@@ -14,6 +14,12 @@ def _seguro(funcion, titulo):
 		frappe.log_error(title=f"QSG inteligencia: {titulo}")
 
 
+def _calificar():
+	from qsg_pmo.inteligencia import reglas
+
+	reglas.calificar_contratistas()
+
+
 def cada_5_minutos():
 	_seguro(servicio.sincronizar_traccar, "Traccar")
 
@@ -25,6 +31,7 @@ def cada_15_minutos():
 def cada_hora():
 	_seguro(servicio.actualizar_clima, "clima")
 	_seguro(servicio.recomendaciones_de_manana, "recomendaciones de mañana")
+	_seguro(_calificar, "calificación de contratistas")
 
 
 def diaria():

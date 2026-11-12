@@ -1,0 +1,91 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-12 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "order",
+  "crew",
+  "assigned_on",
+  "confirmed_on",
+  "confirmed_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Orden",
+   "options": "QSG Orden",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "crew",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cuadrilla",
+   "options": "QSG Cuadrilla",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "assigned_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Asignada",
+   "read_only": 1
+  },
+  {
+   "fieldname": "confirmed_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Recibida por el contratista",
+   "read_only": 1
+  },
+  {
+   "fieldname": "confirmed_by",
+   "fieldtype": "Link",
+   "label": "Confirmó",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-12 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "QSG PMO",
+ "name": "QSG Aviso",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QSG Gerente"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "QSG Despachador"
+  }
+ ],
+ "sort_field": "assigned_on",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "order"
+}

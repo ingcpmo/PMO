@@ -55,6 +55,9 @@ def reasignar(orden: str, cuadrilla: str, motivo: str, recomendacion: str | None
 
 	doc = frappe.get_doc("QSG Orden", orden)
 	estado = doc.reassign(crew=cuadrilla, reason=v.texto(motivo, 300) or _("Sugerencia de QSG PMO"))
+	from qsg_pmo.inteligencia import avisos
+
+	avisos.registrar(orden, cuadrilla)
 	if recomendacion and frappe.db.exists("QSG Recomendacion", recomendacion):
 		atender(recomendacion, "Aceptada")
 	return {"orden": orden, "status": estado, "cuadrilla": cuadrilla}
@@ -164,3 +167,126 @@ def demo_reiniciar() -> dict:
 	from qsg_pmo.inteligencia import demo_vivo
 
 	return demo_vivo.reiniciar()
+
+
+# ---------------------------------------------------------------------- perfiles, equipo, reglas y avisos
+@frappe.whitelist()
+@limitar()
+def mi_perfil() -> dict:
+	"""Perfil del usuario conectado: decide si la app abre el tablero o la ruta de campo."""
+	if frappe.session.user == "Guest":
+		raise frappe.PermissionError
+	from qsg_pmo.inteligencia import perfiles
+
+	return perfiles.mi_perfil()
+
+
+@frappe.whitelist()
+@limitar()
+def mis_avisos() -> list:
+	"""Órdenes asignadas a la cuadrilla del usuario que todavía no marca como «Recibida»."""
+	if frappe.session.user == "Guest":
+		raise frappe.PermissionError
+	from qsg_pmo.inteligencia import avisos
+
+	return avisos.mis_avisos()
+
+
+@frappe.whitelist(methods=["POST"])
+@limitar()
+def confirmar_aviso(orden: str) -> dict:
+	if frappe.session.user == "Guest":
+		raise frappe.PermissionError
+	from qsg_pmo.inteligencia import avisos
+
+	return avisos.confirmar(orden)
+
+
+@frappe.whitelist()
+@limitar(factor=0.25)
+def por_asignar(limite: int = 20) -> dict:
+	"""Peticiones sin cuadrilla, cada una con sus mejores opciones calculadas por reglas."""
+	frappe.only_for(s.DESPACHO)
+	from qsg_pmo.inteligencia import reglas
+
+	return reglas.por_asignar(limite)
+
+
+@frappe.whitelist()
+@limitar()
+def perfil_contratista(contratista: str) -> dict:
+	frappe.only_for(s.DESPACHO)
+	from qsg_pmo.inteligencia import reglas
+
+	return reglas.perfil_contratista(contratista)
+
+
+@frappe.whitelist()
+@limitar()
+def reglas() -> dict:
+	frappe.only_for(s.DESPACHO)
+	from qsg_pmo.inteligencia import reglas as r
+
+	return r.reglas()
+
+
+@frappe.whitelist(methods=["POST"])
+@limitar(factor=0.25)
+def guardar_reglas(valores) -> dict:
+	from qsg_pmo.inteligencia import reglas as r
+
+	return r.guardar_reglas(valores)
+
+
+@frappe.whitelist(methods=["POST"])
+@limitar(factor=0.1)
+def recalcular_calificaciones() -> list:
+	frappe.only_for(("System Manager", "QSG Gerente"))
+	from qsg_pmo.inteligencia import reglas as r
+
+	return r.calificar_contratistas()
+
+
+@frappe.whitelist()
+@limitar()
+def equipo() -> dict:
+	from qsg_pmo.inteligencia import perfiles
+
+	return perfiles.equipo()
+
+
+@frappe.whitelist(methods=["POST"])
+@limitar(factor=0.25)
+def guardar_usuario(
+	perfil: str,
+	correo: str,
+	nombre: str | None = None,
+	telefono: str | None = None,
+	contratista: str | None = None,
+	municipio: str | None = None,
+	habilidades=None,
+	cupo: int | None = None,
+	turno_desde: str | None = None,
+	turno_hasta: str | None = None,
+) -> dict:
+	from qsg_pmo.inteligencia import perfiles
+
+	return perfiles.guardar_usuario(
+		perfil, correo, nombre, telefono, contratista, municipio, habilidades, cupo, turno_desde, turno_hasta
+	)
+
+
+@frappe.whitelist(methods=["POST"])
+@limitar(factor=0.25)
+def estado_usuario(correo: str, activo: int) -> dict:
+	from qsg_pmo.inteligencia import perfiles
+
+	return perfiles.estado_usuario(correo, activo)
+
+
+@frappe.whitelist(methods=["POST"])
+@limitar(factor=0.1)
+def nueva_clave(correo: str) -> dict:
+	from qsg_pmo.inteligencia import perfiles
+
+	return perfiles.nueva_clave(correo)

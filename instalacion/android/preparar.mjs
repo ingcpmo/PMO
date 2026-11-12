@@ -36,7 +36,7 @@ function writeConfig(raw) {
 		appName: "QSG Campo",
 		webDir: "www",
 		server: {
-			url: `${servidor}/campo`,
+			url: `${servidor}/campo?app=1`,
 			cleartext: url.protocol === "http:",
 			allowNavigation: [url.hostname],
 			errorPath: "index.html",
@@ -54,10 +54,10 @@ function writeConfig(raw) {
 
 function writeConfigPreguntar() {
 	// Servidores que la app abre dentro de ella (con GPS y cámara) cuando la dirección se escribe al
-	// abrirla: GitHub Codespaces (y su inicio de sesión para puertos privados), su PC con el túnel https
-	// de Cloudflare (instalacion/linux) y la red local. Otra dirección se abre en el navegador; para un
+	// abrirla: GitHub Codespaces (y su inicio de sesión para puertos privados), su PC con la dirección
+	// https de Tailscale o de Cloudflare (instalacion/linux) y la red local. Otra dirección se abre en el navegador; para un
 	// dominio propio, construya el APK con esa dirección.
-	const permitidos = ["*.app.github.dev", "github.com", "*.trycloudflare.com", "192.168.*.*", "10.*.*.*", "172.*.*.*"];
+	const permitidos = ["*.app.github.dev", "github.com", "*.trycloudflare.com", "*.ts.net", "192.168.*.*", "10.*.*.*", "172.*.*.*"];
 	const config = {
 		appId: "pr.qsg.campo",
 		appName: "QSG Campo",

@@ -16,7 +16,7 @@ import statistics
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
-from qsg_pmo.assignment.engine import Settings
+from qsg_pmo.assignment.engine import Settings, haversine_km
 from qsg_pmo.inteligencia.optimizacion import elegible
 from qsg_pmo.inteligencia.rutas import ModeloViaje
 from qsg_pmo.inteligencia.territorio import LLANO, ZONAS_VECINAS
@@ -303,6 +303,9 @@ def mejor_cuadrilla(
 				"contratista": c.contractor,
 				"costo": round(costo, 1),
 				"minutos_viaje": round(minutos, 1),
+				"km": round(haversine_km(cc.lat, cc.lng, trabajo.latitude, trabajo.longitude), 1),
+				"cupos": c.max_orders - cc.ordenes_hoy,
+				"ubicacion": cc.fuente_ubicacion,
 				"llegada": inicio,
 				"termina": fin,
 				"razones": razones + cc.notas,

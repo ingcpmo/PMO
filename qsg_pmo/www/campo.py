@@ -11,6 +11,20 @@ no_cache = 1
 def get_context(context):
 	if frappe.session.user == "Guest":
 		frappe.local.flags.redirect_location = "/login?redirect-to=/campo"
+		if frappe.form_dict.get(
+			"app"
+		):  # el APK conserva su entrada para volver por perfil tras iniciar sesión
+			frappe.local.flags.redirect_location += "%3Fapp%3D1"
+		raise frappe.Redirect
+	# Desde el APK (?app=1), administradores, despachadores y supervisores abren su tablero;
+	# el contratista sigue en su ruta. Sin el parámetro, /campo funciona igual para todos.
+	if frappe.form_dict.get("app") and set(frappe.get_roles()) & {
+		"System Manager",
+		"QSG Gerente",
+		"QSG Despachador",
+		"QSG Supervisor Contratista",
+	}:
+		frappe.local.flags.redirect_location = "/despacho"
 		raise frappe.Redirect
 	context.no_cache = 1
 	context.csrf_token = get_csrf_token()
