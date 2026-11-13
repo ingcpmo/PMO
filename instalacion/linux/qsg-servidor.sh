@@ -252,21 +252,36 @@ except Exception:
 }
 
 tunel_tailscale() {
-  local dns salida
+  local dns i estado
   dns="$(nombre_tailscale)"
   [ -n "$dns" ] || return 1
   info "Publicando QSG PMO con Tailscale Funnel en https://$dns (dirección fija)"
-  if ! salida="$(timeout 40 sudo tailscale funnel --bg "$PUERTO" 2>&1)"; then
-    printf '%s\n' "$salida" | tail -6 >&2
-    if printf '%s' "$salida" | grep -qi "login.tailscale.com"; then
-      aviso "Funnel no está habilitado en su red de Tailscale. Abra el enlace de arriba, habilítelo y repita: bash qsg-servidor.sh tunel"
+  # Una sola vez: su usuario queda como operador de Tailscale y Funnel ya no necesita sudo.
+  # sudo corre aquí en primer plano para que la contraseña se pueda escribir normalmente.
+  if [ ! -f "$ESTADO/tailscale.operador" ]; then
+    echo "  Tailscale pide su contraseña de sudo una sola vez para que su usuario pueda publicar."
+    sudo tailscale set --operator="${USER:-$(id -un)}" || return 1
+    touch "$ESTADO/tailscale.operador"
+  fi
+  echo "  Si aparece un enlace de login.tailscale.com, ábralo en el navegador y habilite Funnel;"
+  echo "  el script espera hasta 3 minutos. Ctrl+C cancela."
+  # --foreground: Ctrl+C llega al comando y el enlace se ve en pantalla mientras espera
+  timeout --foreground 180 tailscale funnel --bg "$PUERTO" 2>&1 | tee "$ESTADO/funnel.log"
+  estado=${PIPESTATUS[0]}
+  if [ "$estado" != 0 ]; then
+    if grep -qi "login.tailscale.com" "$ESTADO/funnel.log"; then
+      aviso "Funnel no quedó habilitado. Abra el enlace de arriba, habilítelo y repita: bash qsg-servidor.sh tunel"
+    elif grep -qi "denied\|operator" "$ESTADO/funnel.log"; then
+      rm -f "$ESTADO/tailscale.operador"
+      aviso "Tailscale no dio permiso a su usuario. Repita: bash qsg-servidor.sh tunel"
     fi
     return 1
   fi
   echo "https://$dns" >"$ESTADO/tunel.url"
   echo tailscale >"$ESTADO/tunel.tipo"
-  local i
-  for i in $(seq 1 30); do curl -sf "https://$dns/api/method/ping" >/dev/null && break; sleep 2; done
+  echo "  Comprobando la dirección (la primera vez puede tardar unos minutos en responder)..."
+  for i in $(seq 1 60); do curl -sf -m 10 "https://$dns/api/method/ping" >/dev/null && return 0; sleep 5; done
+  aviso "https://$dns todavía no responde. Puede tardar unos minutos más la primera vez; revise con: bash qsg-servidor.sh estado"
 }
 
 tunel_cloudflare() {
@@ -433,7 +448,7 @@ case "$orden" in
   detener)
     usar_docker
     if [ "$(cat "$ESTADO/tunel.tipo" 2>/dev/null)" = tailscale ]; then
-      sudo tailscale funnel --https=443 off >/dev/null 2>&1 || sudo tailscale funnel reset >/dev/null 2>&1 || true
+      tailscale funnel --https=443 off >/dev/null 2>&1 || sudo tailscale funnel --https=443 off >/dev/null 2>&1 || true
       rm -f "$ESTADO/tunel.url" "$ESTADO/tunel.tipo"
     fi
     detener_tunel
